@@ -14,11 +14,11 @@ return new class extends Migration
         Schema::create('promos', function (Blueprint $table) {
             $table->id();
             $table->foreignId('jenis_promo_id')->constrained('jenis_deposits')->restrictOnUpdate()->restrictOnDelete();
-            $table->integer('min_deposit_member');
-            $table->integer('max_deposit_member');
+            $table->integer('min_deposit_member')->nullable();
+            $table->integer('max_deposit_member')->nullable();
             $table->integer('kriteria_pembelian');
             $table->integer('bonus');
-            $table->integer('masa_berlaku');
+            $table->integer('masa_berlaku')->nullable();
             $table->boolean('is_active')->default(true);
             $table->timestamps();
         });

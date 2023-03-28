@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('jadwal_umum_id')->constrained('jadwal_umums')->cascadeOnUpdate()->cascadeOnDelete();
             $table->date('tanggal');
-            $table->foreignId('status_id')->constrained('status_jadwal_harians')->cascadeOnUpdate()->cascadeOnDelete();
+            $table->foreignId('status_id')->constrained('status_jadwal_harians')->cascadeOnUpdate()->cascadeOnDelete()->default(null);
             $table->timestamps();
         });
     }
