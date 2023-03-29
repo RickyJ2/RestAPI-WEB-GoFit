@@ -27,7 +27,7 @@ return new class extends Migration
             $table->string('nama')->index();
             $table->string('alamat');
             $table->date('tgl_lahir');
-            $table->string('no_telp');
+            $table->string('no_telp',15);
             $table->string('username')->unique()->nullable();
             $table->string('password')->nullable();
             $table->rememberToken();
