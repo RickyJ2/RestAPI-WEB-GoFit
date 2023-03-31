@@ -13,7 +13,8 @@ return new class extends Migration
     {
         Schema::create('detail_transaksi_deposit_kelas_pakets', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('no_nota')->constrained('transaksis')->cascadeOnUpdate()->restrictOnDelete();
+            $table->string('no_nota');  
+            $table->foreign('no_nota')->nullable()->default(null)->references('id')->on('transaksis')->cascadeOnUpdate()->cascadeOnDelete();
             $table->foreignId('promo_id')->nullable()->default(null)->constrained('promos')->cascadeOnUpdate()->cascadeOnDelete();
             $table->foreignId('kelas_id')->constrained('kelas')->cascadeOnUpdate()->cascadeOnDelete();
             $table->integer('nominal');

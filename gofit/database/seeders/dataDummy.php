@@ -6,9 +6,20 @@ use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Carbon\Carbon;
+use Illuminate\Database\Query\JoinClause;
+use PhpParser\Node\Stmt\Continue_;
 
 class dataDummy extends Seeder
 {
+    public function generateDepositReguler() {
+        $min = 1000000;
+        $max = 10000000;
+        $interval = 500000;
+        $range = ($max - $min) / $interval;
+        $randomIndex = rand(0, $range);
+        $randomNumber = $min + ($randomIndex * $interval);
+        return $randomNumber;
+    }
     /**
      * Run the database seeds.
      */
@@ -173,7 +184,7 @@ class dataDummy extends Seeder
             ],
         ]);
 
-        //Kelas: 20
+        //Kelas: 19
         DB::table('kelas')->insert([[
                 'nama' => 'SPINE Corrector',
                 'harga' => 150000,
@@ -439,11 +450,12 @@ class dataDummy extends Seeder
 
         //Jadwal Harian
         $start_date = '2023-01-01';
-        $end_date = '2023-04-02';
+        $end_date = Carbon::now();
+        $countJadwalHarian = 0;
 
         $start = Carbon::parse($start_date);
         $end = Carbon::parse($end_date);
-        for($date = $start; $date->lte($end); $date->addDay()) {
+        for($date = $start; $date->lte($end); $date->addDays(1,7)) {
             for($index = 1; $index <= 30; $index++){
                 $jadwalUmum = DB::table('jadwal_umums')->find($index);
                 if($jadwalUmum->hari == Carbon::parse($date)->format('l')){
@@ -452,10 +464,431 @@ class dataDummy extends Seeder
                         'tanggal' => $date,
                         'created_at' => '2023-01-01 00:00:00',
                     ],]);
+                    $countJadwalHarian++;
                 }
             }
         }
+
+        //random jadwal harian kosong
+        $jadwal_harian_id = 1;
+
+        while($jadwal_harian_id < $countJadwalHarian){
+            DB::table('jadwal_harians')
+                ->where('id', $jadwal_harian_id)
+                ->update(['status_id' => 1,]);
+            
+            $jadwal_harian_id += rand(20, 100);
+        }
         
+        
+        //Izin_Instruktur
+        $jadwal_harian_id = 1;
+
+        while($jadwal_harian_id < $countJadwalHarian){
+            $jadwalHarian = DB::table('jadwal_harians')->find($jadwal_harian_id);
+            if($jadwalHarian->status_id == null){
+                $jadwalUmum = DB::table('jadwal_umums')->find($jadwalHarian->jadwal_umum_id);
+                $datePegajuan = Carbon::parse($jadwalHarian->tanggal)->subDays(rand(1,14));
+    
+                do {
+                    $instrukturPeganti_id = rand(1, 12);
+                    $cekNabrakJadwalUmum = DB::table('jadwal_umums')
+                        ->where('instruktur_id',$instrukturPeganti_id)
+                        ->where('jam_mulai', $jadwalUmum->jam_mulai)
+                        ->where('hari', $jadwalUmum->hari)
+                        ->get();
+                    $cekNabrakJadwalPeganti = DB::table('izin_instrukturs')
+                        ->join('jadwal_harians', 'izin_instrukturs.jadwal_harian_id', '=', 'jadwal_harians.id')
+                        ->join('jadwal_umums', 'jadwal_harians.jadwal_umum_id', '=', 'jadwal_umums.id')
+                        ->where('izin_instrukturs.instruktur_penganti_id',$instrukturPeganti_id)
+                        ->where('jadwal_umums.jam_mulai', $jadwalUmum->jam_mulai)
+                        ->where('jadwal_umums.hari', $jadwalUmum->hari)
+                        ->get();
+                } while ($instrukturPeganti_id == $jadwalUmum->instruktur_id && $cekNabrakJadwalUmum != null && $cekNabrakJadwalPeganti != null);
+    
+                DB::table('izin_instrukturs')->insert([[ 
+                    'jadwal_harian_id' => $jadwal_harian_id,
+                    'instruktur_pengaju_id' => $jadwalUmum->instruktur_id,
+                    'instruktur_penganti_id' => $instrukturPeganti_id,
+                    'is_confirmed' => true,
+                    'created_at' => $datePegajuan,
+                ],]);
+                DB::table('jadwal_harians')
+                    ->where('id', $jadwal_harian_id)
+                    ->update(['status_id' => 2,]);
+            }
+            $jadwal_harian_id += rand(1, 40);
+        }
+
+        //Presensi
+        for($presensiInstruktur_Id = 1; $presensiInstruktur_Id <= $countJadwalHarian; $presensiInstruktur_Id++){
+            $jadwalHarian = DB::table('jadwal_harians')->find($presensiInstruktur_Id);
+
+            if($jadwalHarian->status_id == 1){
+                continue;
+            }
+
+            $jadwalUmum = DB::table('jadwal_umums')->find($jadwalHarian->jadwal_umum_id);
+            $instruktur = $jadwalUmum->instruktur_id;
+
+            if($jadwalHarian->status_id == 2){
+                $izinInstuktur = DB::table('izin_instrukturs')
+                    ->where('jadwal_harian_id', $presensiInstruktur_Id)
+                    ->get();
+                $instruktur = $izinInstuktur->first()->instruktur_penganti_id;
+            }
+            
+            $rand = rand(1,10);
+            if($rand <= 7){
+                $controlledRandMasukTime = rand(-15,0);
+            }else{
+                $controlledRandMasukTime = rand(1,30);
+            }
+
+            $masukTime = Carbon::parse($jadwalUmum->jam_mulai)->subMinutes($controlledRandMasukTime);
+            $selesaiTime = Carbon::parse($jadwalUmum->jam_mulai)->addHours(2)->subMinutes(rand(-30, 15));
+
+            DB::table('presensi_instrukturs')->insert([[ 
+                    'instruktur_id' => $instruktur,
+                    'jadwal_harian_id' => $presensiInstruktur_Id,
+                    'jenis_presensi' => 'masuk',
+                    'created_at' => $masukTime,
+                ],[ 
+                    'instruktur_id' => $instruktur,
+                    'jadwal_harian_id' => $presensiInstruktur_Id,
+                    'jenis_presensi' => 'selesai',
+                    'created_at' => $selesaiTime,
+                ],
+            ]);
+        }
+       
+        //member
+        $namaMember = ['Arianna Mcknight','Tommy-Lee Carroll','Zakaria Slater','Ophelia Fisher','Esme Mack','Cleo Buckley','Kyra Barnett','Brianna Sanchez','Honey Lucas','Hugo Ortiz','Mahir Pena','Karina Sheppard','Simeon Archer','Alma Oneal','Susie Connolly','Uzair Shepherd','Ria Thornton','Roisin Sullivan','Isaiah Wang','Darcie Stevenson',];
+        $jalanMember =['Karya Utama', 'Sejati Damai', 'Megah Ria', 'Cendekia', 'Babarsari', 'Centralpark', 'Sinar Kasih', 'Abadi', 'Buntu', 'Klaten'];
+        $start_date = '1990-01-01';
+        $end_date = '2004-12-31';
+        $start_date = new Carbon($start_date);
+        $end_date = new Carbon($end_date);
+
+        $start_date2 = '2023-01-01';
+        $end_date2 = '2023-01-07';
+        $start_date2 = new Carbon($start_date2);
+        $end_date2 = new Carbon($end_date2);
+
+        for($id = 0; $id < count($namaMember); $id++){
+            $bornDateRand = Carbon::createFromTimestamp(rand($start_date->timestamp, $end_date->timestamp));
+            $joinDateRand = Carbon::createFromTimestamp(rand($start_date2->timestamp, $end_date2->timestamp));
+            $phone_numberRand = '08';
+            for ($i = 0; $i < 8; $i++) {
+                $phone_numberRand .= rand(0, 9);
+            }
+            DB::table('members')->insert([
+                [
+                    'nama' => $namaMember[$id],
+                    'alamat' => 'Jl. ' . $jalanMember[rand(0, count($jalanMember) - 1)] . ' No. ' . rand(1,30)  . ' Yogyakarta',
+                    'tgl_lahir' => $bornDateRand,
+                    'no_telp' => $phone_numberRand,
+                    'username' => $namaMember[$id],
+                    'password' => bcrypt($bornDateRand->format('dmy')),
+                    'created_at' => $joinDateRand->setTime(rand(8, 20), rand(0, 59), rand(0, 59)),
+                ],
+            ]);
+            //aktivasi akun
+            $member = DB::table('members')
+                ->where('username', $namaMember[$id])
+                ->get()->first();
+            DB::table('transaksis')->insert([
+                'pegawai_id' => 'P0' . rand(4,5),
+                'member_id' => $member->id,
+                'jenis_transaksi_id' => 1,
+                'created_at' => $joinDateRand
+                    ->addDay()
+                    ->setTime(rand(8, 20), rand(0, 59), rand(0, 59)),
+            ]);
+            DB::table('members')
+                ->where('id', $member->id)
+                ->update(['deactived_membership_at' => $joinDateRand->addDay()->addYear(),]);
+
+            //Deposit Reguler
+            $pegawai_id = 'P0' . rand(4,5);
+            $created_at = $joinDateRand
+                ->addDays(rand(1,3))
+                ->setTime(rand(8, 20), rand(0, 59), rand(0, 59));
+
+            DB::table('transaksis')->insert([
+                'pegawai_id' => $pegawai_id,
+                'member_id' => $member->id,
+                'jenis_transaksi_id' => 2,
+                'created_at' => $created_at,
+            ]);
+            $transaksiData = DB::table('transaksis')->latest('id')->first();
+            $promo = DB::table('promos')
+                ->where('jenis_promo_id', 1)
+                ->where('is_active', true)
+                ->get();
+            
+            $nominal =  $this->generateDepositReguler();
+            $bonus = 0;
+            $promo_id = null;
+            //cek Promo
+            for($index = 0; $index < count($promo); $index++){
+                if($promo[$index]->kriteria_pembelian <= $nominal){
+                    $bonus = $promo[$index]->bonus;
+                    $promo_id = $index;
+                }
+            }
+
+            DB::table('detail_transaksi_deposit_regulers')->insert([
+                    'no_nota' => $transaksiData->id,
+                    'promo_id' => $promo_id + 1,
+                    'nominal' => $nominal,
+                    'created_at' => $transaksiData->created_at,
+                ],);
+            
+            DB::table('members')
+                ->where('id', $member->id)
+                ->update(['deposit_reguler' => $member->deposit_reguler + $nominal + $bonus,]);
+        }
+
+        //Transaksi
+        $startDate = Carbon::parse('2023-01-10');
+        $endDate = Carbon::now();
+        for($date = $startDate; $date->lte($endDate); $date->addDays(rand(14,30))) {
+            $memberList = DB::table('members')->get();
+            for($index = 0; $index < count($memberList); $index += rand(3,count($memberList))){
+                $ProbTransaksi = rand(1,10);
+                $jenis_transaksi_id = 0;
+                if($ProbTransaksi == 1){
+                    $jenis_transaksi_id = 2;
+                }else if($ProbTransaksi == 2){
+                    $jenis_transaksi_id = 3;
+                }else if($ProbTransaksi <= 4){
+                    $jenis_transaksi_id = 5;
+                }else{
+                    continue;
+                }
+
+                $member = $memberList[$index];
+                $member_id = $member->id;
+
+                switch($jenis_transaksi_id){
+                    case 2:{
+                        //Deposit Reguler
+                        $pegawai_id = 'P0' . rand(4,5);
+                        $created_at = $date
+                            ->setTime(rand(8, 20), rand(0, 59), rand(0, 59));
+            
+                        DB::table('transaksis')->insert([
+                            'pegawai_id' => $pegawai_id,
+                            'member_id' => $member->id,
+                            'jenis_transaksi_id' => 2,
+                            'created_at' => $created_at,
+                        ]);
+                        $transaksiData = DB::table('transaksis')->latest('id')->first();
+                        $promo = DB::table('promos')
+                            ->where('jenis_promo_id', 1)
+                            ->where('is_active', true)
+                            ->get();
+                        
+                        $nominal =  $this->generateDepositReguler();
+                        $bonus = 0;
+                        $promo_id = null;
+                        //cek Promo
+                        for($index = 0; $index < count($promo); $index++){
+                            if($promo[$index]->kriteria_pembelian <= $nominal){
+                                $bonus = $promo[$index]->bonus;
+                                $promo_id = $index;
+                            }
+                        }
+            
+                        DB::table('detail_transaksi_deposit_regulers')->insert([
+                                'no_nota' => $transaksiData->id,
+                                'promo_id' => $promo_id + 1,
+                                'nominal' => $nominal,
+                                'created_at' => $transaksiData->created_at,
+                            ],);
+                        
+                        DB::table('members')
+                            ->where('id', $member->id)
+                            ->update(['deposit_reguler' => $member->deposit_reguler + $nominal + $bonus,]);
+                        break;
+                    };
+                    case 3:{
+                        //Deposit Kelas Paket
+                        if($member->deposit_kelas_paket != 0){break;}//cek id masih ada kelas paket
+
+                        $pegawai_id = 'P0' . rand(4,5);
+                        $created_at = $date
+                            ->setTime(rand(8, 20), rand(0, 59), rand(0, 59));
+
+                        DB::table('transaksis')->insert([
+                            'pegawai_id' => $pegawai_id,
+                            'member_id' => $member_id,
+                            'jenis_transaksi_id' => 3,
+                            'created_at' => $created_at,
+                        ]);
+                        $transaksiData = DB::table('transaksis')->latest('id')->first();
+                        $promo = DB::table('promos')
+                            ->where('jenis_promo_id', 2)
+                            ->where('is_active', true)
+                            ->get();
+                        
+                        $nominal =  rand(2,15);
+                        $bonus = 0;
+                        $promo_id = null;
+                        //cek Promo
+                        for($index = 0; $index < count($promo); $index++){
+                            if($promo[$index]->kriteria_pembelian <= $nominal){
+                                $bonus = $promo[$index]->bonus;
+                                $promo_id = $index;
+                            }
+                        }
+
+                        $kelas_id = rand(1,19);
+                        $kelas = DB::table('kelas')->find($kelas_id);
+
+                        DB::table('detail_transaksi_deposit_kelas_pakets')->insert([
+                                'no_nota' => $transaksiData->id,
+                                'promo_id' => $promo_id + 1,
+                                'kelas_id' => $kelas_id,
+                                'nominal' => $nominal,
+                                'total' => $nominal*$kelas->harga,
+                                'created_at' => $transaksiData->created_at,
+                            ],);
+                        $MasaDeposit = 1;
+                        if($nominal >= 10){
+                            $MasaDeposit = 2;
+                        }
+                        DB::table('members')
+                            ->where('id', $member_id)
+                            ->update([
+                                'deposit_kelas_paket' => $nominal + $bonus,
+                                'deactived_deposit_kelas_paket' => Carbon::parse($transaksiData->created_at)->addMonths($MasaDeposit),
+                                'kelas_deposit_kelas_paket_id' => rand(1,19),
+                            ]);
+                        break;
+                    };
+                    case 5:{
+                        //Booking Presensi Kelas Paket
+                        $jadwalHarian = DB::table('jadwal_harians')
+                            ->whereDate('tanggal', '=', date('Y-m-d', strtotime($date)))
+                            ->get();
+                        for($index = 0; $index < count($jadwalHarian); $index += rand(1,3)){
+                            $bookList = DB::table('booking_kelas')
+                                ->where('jadwal_harian_id', $jadwalHarian[$index]->id)
+                                ->get();
+                            if($bookList == null){continue;}
+                            if(count($bookList) >= 10){continue;}
+
+                            $jadwalUmum = DB::table('jadwal_umums')->find($jadwalHarian[$index]->jadwal_umum_id);
+                            $kelas = DB::table('kelas')->find($jadwalUmum->kelas_id);
+
+                            if($member->kelas_deposit_kelas_paket_id == $jadwalUmum->kelas_id){
+                                $depositKelasPaket = $member->deposit_kelas_paket - 1;
+                                if($depositKelasPaket == 0){
+                                    DB::table('members')
+                                        ->where('id', $member_id)
+                                        ->update([
+                                            'deposit_kelas_paket' => $depositKelasPaket,
+                                            'deactived_deposit_kelas_paket' => null,
+                                            'kelas_deposit_kelas_paket_id' => null,
+                                        ]);
+                                }else{
+                                    DB::table('members')
+                                        ->where('id', $member_id)
+                                        ->update([
+                                            'deposit_kelas_paket' => $depositKelasPaket,
+                                        ]);
+                                }
+                            }else if($member->deposit_reguler >= $kelas->harga){
+                                DB::table('members')
+                                    ->where('id', $member_id)
+                                    ->update([
+                                        'deposit_reguler' => $member->deposit_reguler - $kelas->harga,
+                                    ]);
+                            }else{
+                                continue;
+                            }
+                            $pegawai_id = 'P0' . rand(4,5);
+                            $created_at = $date
+                                ->addHours(substr($jadwalUmum->jam_mulai, 0, 2))
+                                ->addMinutes(substr($jadwalUmum->jam_mulai, 3, 2))
+                                ->subMinutes(rand(10,30));
+                            DB::table('transaksis')->insert([
+                                'pegawai_id' => $pegawai_id,
+                                'member_id' => $member_id,
+                                'jenis_transaksi_id' => 5,
+                                'created_at' => $created_at,
+                            ]);
+                            $transaksiData = DB::table('transaksis')->latest('id')->first();
+                            DB::table('booking_kelas')->insert([
+                                [
+                                    'no_nota' => $transaksiData->id,
+                                    'member_id' => $member_id,
+                                    'jadwal_harian_id' => $jadwalHarian[$index]->id,
+                                    'created_at' => $date
+                                            ->subDays(rand(1,3))
+                                            ->setTime(rand(8, 20), rand(0, 59), rand(0, 59)),
+                                ],
+                            ]);
+                        }
+                        break;
+                    };
+                    default:{};
+                }   
+            }
+        }
+
+        //random booking gym
+        $startDate = Carbon::parse('2023-01-10');
+        $endDate = Carbon::now();
+        for($date = $startDate; $date->lte($endDate); $date->addDays(rand(14,30))) {
+            for($sesi_id = 1; $sesi_id <= 7; $sesi_id += rand(4,7)){
+                $memberBooking = range(1, count($namaMember));
+                shuffle($memberBooking); 
+
+                $index = 1;
+                $count = 0;
+                $bnykBooking = rand(0,4);
+
+                while($count < $bnykBooking && $index < count($namaMember)){
+                    $member = DB::table('members')
+                        ->where('username', $namaMember[$index])
+                        ->get()->first();
+
+                    $cekBooking = DB::table('booking_gyms')
+                        ->where('member_id', $member->id)
+                        ->where('tgl_booking', $date)
+                        ->get();
+                    
+                    if($cekBooking == null || count($cekBooking) == 0){
+                        $pegawai_id = 'P0' . rand(4,5);
+                        $created_at = Carbon::parse($date);
+
+                        DB::table('transaksis')->insert([
+                            'pegawai_id' => $pegawai_id,
+                            'member_id' => $member->id,
+                            'jenis_transaksi_id' => 4,
+                            'created_at' => $created_at,
+                        ]);
+                        $transaksiData = DB::table('transaksis')->latest('id')->first();
+                        DB::table('booking_gyms')->insert([
+                            [
+                                'no_nota' => $transaksiData->id,
+                                'member_id' => $member->id,
+                                'sesi_gym_id' => $sesi_id,
+                                'tgl_booking' => $date,
+                                'created_at' => $date
+                                        ->subDays(rand(1,3))
+                                        ->setTime(rand(8, 20), rand(0, 59), rand(0, 59)),
+                            ],
+                        ]);
+                        $count++;
+                    }
+                    $index++;
+                }  
+            }
+        }
 
     }
 }

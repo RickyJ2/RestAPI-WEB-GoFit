@@ -23,7 +23,7 @@ return new class extends Migration
                 DECLARE increment_number VARCHAR(2);
                 SET year_prefix = DATE_FORMAT(NEW.created_at, '%y');
                 SET month_prefix = DATE_FORMAT(NEW.created_at, '%m');
-                SET increment_number = LPAD((SELECT IFNULL(MAX(RIGHT(id, 2)), 0) + 1 FROM members WHERE YEAR(created_at) = YEAR(NEW.created_at) AND MONTH(created_at) = MONTH(NEW.created_at)), 2, '0');
+                SET increment_number = LPAD((SELECT IFNULL(MAX(RIGHT(id, 2)), 0) + 1 FROM members), 2, '0');
                 
                 SET NEW.id = CONCAT(year_prefix, '.', month_prefix, '.', increment_number);
             END;

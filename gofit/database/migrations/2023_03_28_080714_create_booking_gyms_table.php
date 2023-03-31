@@ -13,13 +13,12 @@ return new class extends Migration
     {
         Schema::create('booking_gyms', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('no_nota')->constrained('transaksis')->cascadeOnUpdate()->restrictOnDelete();
+            $table->string('no_nota');  
+            $table->foreign('no_nota')->nullable()->default(null)->references('id')->on('transaksis')->cascadeOnUpdate()->cascadeOnDelete();
             $table->string('member_id');  
             $table->foreign('member_id')->references('id')->on('members')->cascadeOnUpdate()->cascadeOnDelete();
             $table->foreignId('sesi_gym_id')->constrained('sesi_gyms')->cascadeOnUpdate()->cascadeOnDelete();
             $table->date('tgl_booking');
-            $table->boolean('presensi')->default(false);
-            $table->dateTime('tgl_presensi')->nullable()->default(null);
             $table->timestamp('created_at')->default(DB::raw('CURRENT_TIMESTAMP'));
             $table->timestamp('updated_at')->default(DB::raw('CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP'));
         });
