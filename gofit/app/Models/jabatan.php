@@ -8,4 +8,8 @@ use Illuminate\Database\Eloquent\Model;
 class jabatan extends Model
 {
     use HasFactory;
+    protected $fillable = [
+        'nama',
+        'level_otoritas',
+    ];
 }

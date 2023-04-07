@@ -13,21 +13,23 @@ return new class extends Migration
     public function up(): void
     {
 
-        $triggerSQL ="
-            CREATE TRIGGER member_id_trigger
+        $triggerSQL = "
+            CREATE TRIGGER members_id_trigger
             BEFORE INSERT ON members
             FOR EACH ROW
             BEGIN
                 DECLARE year_prefix VARCHAR(2);
                 DECLARE month_prefix VARCHAR(2);
-                DECLARE increment_number VARCHAR(2);
+                SET @next_id = (SELECT IFNULL(MAX(RIGHT(id, LOCATE('.', REVERSE(id)) - 1)), 0) + 1 FROM members);
                 SET year_prefix = DATE_FORMAT(NEW.created_at, '%y');
                 SET month_prefix = DATE_FORMAT(NEW.created_at, '%m');
-                SET increment_number = LPAD((SELECT IFNULL(MAX(RIGHT(id, 2)), 0) + 1 FROM members), 2, '0');
-                
-                SET NEW.id = CONCAT(year_prefix, '.', month_prefix, '.', increment_number);
-            END;
-        ";
+                IF( @next_id < 10 ) THEN
+                    SET NEW.id = CONCAT(year_prefix, '.', month_prefix, '.', LPAD(@next_id, 2, '0'));
+                ELSE
+                    SET NEW.id = CONCAT(year_prefix, '.', month_prefix, '.', @next_id);
+                END IF;
+            END
+            ";
 
         Schema::create('members', function (Blueprint $table) {
             $table->string('id')->unique()->primary();
@@ -35,6 +37,7 @@ return new class extends Migration
             $table->string('alamat');
             $table->date('tgl_lahir');
             $table->string('no_telp');
+            $table->string('email');
             $table->string('username')->unique();
             $table->string('password');
             $table->rememberToken();
@@ -45,7 +48,6 @@ return new class extends Migration
             $table->foreignId('kelas_deposit_kelas_paket_id')->nullable()->default(null)->constrained('kelas')->cascadeOnUpdate()->cascadeOnDelete();
             $table->timestamp('created_at')->default(DB::raw('CURRENT_TIMESTAMP'));
             $table->timestamp('updated_at')->default(DB::raw('CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP'));
-            $table->dateTime('quited_at')->nullable()->default(null);
 
             $table->index(['username', 'password']);
         });

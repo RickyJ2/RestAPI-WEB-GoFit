@@ -8,4 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class jenis_deposit extends Model
 {
     use HasFactory;
+    protected $fillable = [
+        'nama',
+    ];
 }

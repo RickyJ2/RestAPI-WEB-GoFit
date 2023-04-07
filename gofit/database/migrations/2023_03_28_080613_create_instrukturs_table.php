@@ -17,12 +17,12 @@ return new class extends Migration
             $table->string('alamat');
             $table->date('tgl_lahir');
             $table->string('no_telp');
+            $table->integer('akumulasi_terlambat')->default(0);
             $table->string('username')->unique();
             $table->string('password');
             $table->rememberToken();
             $table->timestamp('created_at')->default(DB::raw('CURRENT_TIMESTAMP'));
             $table->timestamp('updated_at')->default(DB::raw('CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP'));
-            $table->dateTime('quited_at')->nullable()->default(null);
 
             $table->index(['username', 'password']);
         });

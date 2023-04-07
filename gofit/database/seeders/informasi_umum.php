@@ -17,6 +17,8 @@ class informasi_umum extends Seeder
             'alamat' => 'Jl. Centralpark No. 10 Yogyakarta',
             'deskripsi' => 'Mari lebih Fit bersama GoFit!',
             'biaya_aktivasi_membership' => 3000000,
+            'min_deposit_reguler' => 500000,
+            'max_deposit_kelas_awal' => 0,
         ]);
     }
 }

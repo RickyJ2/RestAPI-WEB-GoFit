@@ -11,23 +11,22 @@ return new class extends Migration
      */
     public function up(): void
     {
-        $triggerSQL ="
+        $triggerSQL = "
             CREATE TRIGGER transaksi_no_struk_trigger
             BEFORE INSERT ON transaksis
             FOR EACH ROW
             BEGIN
-                DECLARE last_id INT; 
-                DECLARE new_id VARCHAR(255); 
-                SET last_id = ( 
-                    SELECT MAX(RIGHT(id, 3)) 
-                    FROM transaksis ); 
-                IF last_id IS NULL THEN 
-                    SET new_id = CONCAT(DATE_FORMAT(NOW(), '%y.%m.'), '001'); 
-                ELSE 
-                    SET new_id = CONCAT(DATE_FORMAT(NOW(), '%y.%m.'), LPAD(last_id + 1, 3, '0')); 
-                END IF; 
-                SET NEW.id = new_id; 
-            END;
+                DECLARE year_prefix VARCHAR(2);
+                DECLARE month_prefix VARCHAR(2);
+                SET @next_id = (SELECT IFNULL(MAX(RIGHT(id, LOCATE('.', REVERSE(id)) - 1)), 0) + 1 FROM transaksis);
+                SET year_prefix = DATE_FORMAT(NEW.created_at, '%y');
+                SET month_prefix = DATE_FORMAT(NEW.created_at, '%m');
+                IF( @next_id < 10 ) THEN
+                    SET NEW.id = CONCAT(year_prefix, '.', month_prefix, '.', LPAD(@next_id, 2, '0'));
+                ELSE
+                    SET NEW.id = CONCAT(year_prefix, '.', month_prefix, '.', @next_id);
+                END IF;
+            END
         ";
 
         Schema::create('transaksis', function (Blueprint $table) {

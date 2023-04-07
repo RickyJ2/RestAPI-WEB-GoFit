@@ -11,14 +11,19 @@ return new class extends Migration
      */
     public function up(): void
     {
+             
         $triggerSQL = "
-        CREATE TRIGGER pegawais_id_trigger
-        BEFORE INSERT ON pegawais
-        FOR EACH ROW
-        BEGIN
-            SET @next_id = (SELECT IFNULL(MAX(RIGHT(id, 2)), 0) + 1 FROM pegawais WHERE LEFT(id, 1) = 'P');
-            SET NEW.id = CONCAT('P', LPAD(@next_id, 2, '0'));
-        END;
+            CREATE TRIGGER pegawais_id_trigger
+            BEFORE INSERT ON pegawais
+            FOR EACH ROW
+            BEGIN
+                SET @next_id = (SELECT IFNULL(MAX(RIGHT(id, LOCATE('P', REVERSE(id)) - 1)), 0) + 1 FROM pegawais);
+                IF( @next_id < 10 ) THEN
+                    SET NEW.id = CONCAT('P', LPAD(@next_id, 2, '0'));
+                ELSE
+                    SET NEW.id = CONCAT('P', @next_id);
+                END IF;
+            END
         ";
 
         Schema::create('pegawais', function (Blueprint $table) {
@@ -33,7 +38,6 @@ return new class extends Migration
             $table->rememberToken();
             $table->timestamp('created_at')->default(DB::raw('CURRENT_TIMESTAMP'));
             $table->timestamp('updated_at')->default(DB::raw('CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP'));
-            $table->dateTime('quited_at')->nullable()->default(null);
 
             $table->index(['username', 'password']);
         });
