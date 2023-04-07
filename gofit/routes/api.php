@@ -15,7 +15,8 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::post('loginWeb', 'App\Http\Controllers\Api\AuthController@loginWeb');
+Route::post('loginMobile', 'App\Http\Controllers\Api\AuthController@loginMobile');
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
+Route::group(['middleware' => 'auth:sanctum'], function(){
+    Route::post('logout', 'App\Http\Controllers\Api\AuthController@logout');
 });
