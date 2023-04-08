@@ -13,9 +13,10 @@ return new class extends Migration
     {
         Schema::create('izin_instrukturs', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('jadwal_harian_id')->index()->constrained('jadwal_harians')->cascadeOnUpdate()->cascadeOnDelete();
+            $table->foreignId('jadwal_umum_id')->index()->constrained('jadwal_umums')->cascadeOnUpdate()->cascadeOnDelete();
             $table->foreignId('instruktur_pengaju_id')->constrained('instrukturs')->cascadeOnUpdate()->cascadeOnDelete();
             $table->foreignId('instruktur_penganti_id')->constrained('instrukturs')->cascadeOnUpdate()->cascadeOnDelete();
+            $table->date('tanggal_izin');
             $table->boolean('is_confirmed')->default(false);
             $table->timestamp('created_at')->default(DB::raw('CURRENT_TIMESTAMP'));
             $table->timestamp('updated_at')->default(DB::raw('CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP'));

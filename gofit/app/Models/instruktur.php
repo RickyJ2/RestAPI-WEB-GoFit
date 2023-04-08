@@ -14,7 +14,6 @@ class instruktur extends Authenticatable
         'alamat',
         'tgl_lahir',
         'no_telp',
-        'akumulasi_terlambat',
         'username',
         'password'
     ];

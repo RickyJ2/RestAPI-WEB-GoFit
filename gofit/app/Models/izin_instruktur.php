@@ -9,9 +9,10 @@ class izin_instruktur extends Model
 {
     use HasFactory;
     protected $fillable = [
-        'jadwal_harian_id',
+        'jadwal_umum_id',
         'instruktur_pengaju_id',
         'instruktur_penganti_id',
+        'tanggal_izin',
         'is_confirmed',
     ];
 }
