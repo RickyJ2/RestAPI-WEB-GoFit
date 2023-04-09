@@ -139,6 +139,36 @@ class JadwalHarianController extends Controller
             'data' => $jadwalHarian
         ], 200);
     }
+    //Tampilkan jadwal harian hari ini
+    public function showToday(Request $request){
+        if(!self::cekManajerOperasional($request)){
+            return response()->json([
+                'success' => false,
+                'message' => 'Anda tidak punya akses',
+                'data' => null
+            ], 400);
+        }
+        $jadwalHarian = DB::table('jadwal_harians')
+            ->join('jadwal_umums', 'jadwal_harians.jadwal_umum_id', '=', 'jadwal_umums.id')
+            ->join('kelas', 'jadwal_umums.kelas_id', '=', 'kelas.id')
+            ->join('instrukturs', 'jadwal_umums.instruktur_id', '=', 'instrukturs.id')
+            ->leftJoin('status_jadwal_harians', 'jadwal_harians.status_id', '=', 'status_jadwal_harians.id')
+            ->leftJoin('izin_instrukturs', function ($join) {
+                $join->on('jadwal_umums.id', '=', 'izin_instrukturs.jadwal_umum_id')
+                    ->on('jadwal_harians.tanggal', '=', 'izin_instrukturs.tanggal_izin')
+                    ->where('izin_instrukturs.is_confirmed', true);
+            })
+            ->leftJoin('instrukturs as instrukturs_penganti', 'izin_instrukturs.instruktur_penganti_id', '=', 'instrukturs_penganti.id')
+            ->select('jadwal_harians.id', 'jadwal_harians.tanggal', 'jadwal_umums.jam_mulai', 'kelas.nama', 'instrukturs.nama as instruktur', 'status_jadwal_harians.jenis_status', 'instrukturs_penganti.nama as instruktur_penganti')
+            ->where('jadwal_harians.tanggal', '=', Carbon::now()->format('Y-m-d'))
+            ->orderBy('jadwal_harians.tanggal')
+            ->get();
+        return response()->json([
+            'success' => true,
+            'message' => 'Daftar Jadwal harian hari ini',
+            'data' => $jadwalHarian
+        ], 200);
+    }
     //tampilkan jadwal harian
     public function index(){
         $start_date = Carbon::now()->startOfWeek();
