@@ -237,4 +237,50 @@ class MemberController extends Controller
             'data' => $member
         ], 200);
     }
+    //mendeactive membership yg kadarluasa
+    public function deactiveMember(Request $request){
+        if(!self::cekKasir($request)){
+            return response()->json([
+                'success' => false,
+                'message' => 'Anda tidak punya akses',
+                'data' => null
+            ], 400);
+        }
+        $member = member::where('deactived_membership_at', '!=', null)
+            ->where('deactived_membership_at', '<', Carbon::now())
+            ->get();
+        foreach($member as $m){
+            $m->deactived_membership_at = null;
+            $m->save();
+        }
+        return response()->json([
+            'success' => true,
+            'message' => 'Berhasil mendekatif membership',
+            'data' => $member
+        ], 200);
+    }
+    //mendeactive deposit kelas paket yg kadarluasa
+    public function deactiveDepositKelasPaketMember(Request $request){
+        if(!self::cekKasir($request)){
+            return response()->json([
+                'success' => false,
+                'message' => 'Anda tidak punya akses',
+                'data' => null
+            ], 400);
+        }
+        $member = member::where('deactived_deposit_kelas_paket_at', '!=', null)
+            ->where('deactived_deposit_kelas_paket_at', '<', Carbon::now())
+            ->get();
+        foreach($member as $m){
+            $m->deposit_kelas_paket = 0;
+            $m->deactived_deposit_kelas_paket_at = null;
+            $m->kelas_deposit_kelas_paket_id = null;
+            $m->save();
+        }
+        return response()->json([
+            'success' => true,
+            'message' => 'Berhasil mendekatif deposit kelas paket',
+            'data' => $member
+        ], 200);
+    }
 }

@@ -20,6 +20,15 @@ class InstrukturController extends Controller
            return true;
        }
    }
+   //cek apakah kasir
+   public function cekKasir(Request $request){
+        $user = pegawai::where('id', $request->user()->id)->first();
+        if(is_null($user) || $user->jabatan_id != 3){
+            return false;
+        }else{
+            return true;
+        }
+    }
    //Tampil semua instruktur (hanya admin)
     public function index(Request $request){
          if(!self::cekAdmin($request)){
@@ -248,6 +257,26 @@ class InstrukturController extends Controller
             'success' => true,
             'message' => 'Informasi Profile Instruktur',
             'data' => $instruktur
+        ], 200);
+    }
+    //reset akumulasi terlambat instruktur per bulan
+    public function resetAkumulasiTerlambat(Request $request){
+        if(!self::cekKasir($request)){
+            return response()->json([
+                'success' => false,
+                'message' => 'Anda tidak punya akses',
+                'data' => null
+            ], 400);
+        }
+        $instruktur = instruktur::all();
+        foreach($instruktur as $i){
+            $i->akumulasi_terlambat = 0;
+            $i->save();
+        }
+        return response()->json([
+            'success' => true,
+            'message' => 'Berhasil reset akumulasi terlambat',
+            'data' => null
         ], 200);
     }
 }
