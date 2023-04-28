@@ -11,6 +11,15 @@ use App\Models\pegawai;
 
 class InstrukturController extends Controller
 {
+    //cek apakah pegawai
+    public function cekPegawai(Request $request){
+        $user = pegawai::where('id', $request->user()->id)->first();
+        if(is_null($user)){
+            return false;
+        }else{
+            return true;
+        }
+    }
     //cek apakah admin
     public function cekAdmin(Request $request){
         $user = pegawai::where('id', $request->user()->id)->first();
@@ -31,12 +40,12 @@ class InstrukturController extends Controller
     }
    //Tampil semua instruktur (hanya admin)
     public function index(Request $request){
-         if(!self::cekAdmin($request)){
+         if(!self::cekPegawai($request)){
               return response()->json([
                 'success' => false,
                 'message' => 'Anda tidak punya akses',
                 'data' => null,
-              ], 400);
+              ], 401);
          }
          $instruktur = instruktur::all();
          return response()->json([
@@ -52,7 +61,7 @@ class InstrukturController extends Controller
                 'success' => false,
                 'message' => 'Anda tidak punya akses',
                 'data' => null
-            ], 400);
+            ], 401);
         }
         $validator = Validator::make($request->all(), [
             'nama' => 'required|string',
@@ -100,7 +109,7 @@ class InstrukturController extends Controller
                 'success' => false,
                 'message' => 'Anda tidak punya akses',
                 'data' => null
-            ], 400);
+            ], 401);
         }
         $instruktur = instruktur::where('id', $request->data)
             ->orWhere('nama', 'like', '%'.$request->data.'%')
@@ -122,7 +131,7 @@ class InstrukturController extends Controller
                 'success' => false,
                 'message' => 'Anda tidak punya akses',
                 'data' => null
-            ], 400);
+            ], 401);
         }
         $instruktur = instruktur::find($id);
         if(is_null($instruktur)){
@@ -175,7 +184,7 @@ class InstrukturController extends Controller
                 'success' => false,
                 'message' => 'Anda tidak punya akses',
                 'data' => null
-            ], 400);
+            ], 401);
         }
         $instruktur = instruktur::find($id);
         if(is_null($instruktur)){

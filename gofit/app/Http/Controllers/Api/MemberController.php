@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Http\Controllers\Api;
-
+use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -27,9 +27,12 @@ class MemberController extends Controller
                 'success' => false,
                 'message' => 'Anda tidak punya akses',
                 'data' => null,
-            ], 400);
+            ], 401);
         }
-        $member = member::all();
+        $member = DB::table('members')
+            ->leftJoin('kelas', 'members.kelas_deposit_kelas_paket_id', '=', 'kelas.id')
+            ->select('members.id','members.nama', 'members.alamat', 'members.tgl_lahir', 'members.no_telp', 'members.email', 'members.username', DB::raw('IFNULL(members.deactived_membership_at, "Belum Aktif") as deactived_membership_at'), 'members.deposit_reguler', 'members.deposit_kelas_paket', DB::raw('IFNULL(members.deactived_deposit_kelas_paket, "Belum Aktif") as deactived_deposit_kelas_paket'), DB::raw('IFNULL(kelas.nama , "-") as kelas_deposit_kelas_paket'))
+            ->get();
         return response()->json([
             'success' => true,
             'message' => 'Daftar Member',
@@ -43,7 +46,7 @@ class MemberController extends Controller
                 'success' => false,
                 'message' => 'Anda tidak punya akses',
                 'data' => null
-            ], 400);
+            ], 401);
         }
         $validator = Validator::make($request->all(), [
             'nama' => 'required|string',
@@ -58,8 +61,8 @@ class MemberController extends Controller
         if($validator->fails()){
             return response()->json([
                 'success' => false,
-                'message' => 'Semua data member harus diisi',
-                'data' => $validator->errors()
+                'message' => $validator->errors(),
+                'data' => null,
             ], 400);
         }
 
@@ -94,14 +97,18 @@ class MemberController extends Controller
                 'success' => false,
                 'message' => 'Anda tidak punya akses',
                 'data' => null
-            ], 400);
+            ], 401);
         }
-        $member = member::where('id', 'LIKE', '%'. $request->data .'%')
-            ->orWhere('nama', 'LIKE', '%'. $request->data .'%')
-            ->orWhere('tgl_lahir', 'LIKE', '%'. $request->data .'%')
-            ->orWhere('no_telp', 'LIKE', '%'. $request->data .'%')
-            ->orWhere('email', 'LIKE', '%'. $request->data .'%')
-            ->orWhere('username', 'LIKE', '%'. $request->data .'%')
+
+        $member = DB::table('members')
+            ->leftJoin('kelas', 'members.kelas_deposit_kelas_paket_id', '=', 'kelas.id')
+            ->where('members.id', 'LIKE', '%'. $request->data .'%')
+            ->orWhere('members.nama', 'LIKE', '%'. $request->data .'%')
+            ->orWhere('members.tgl_lahir', 'LIKE', '%'. $request->data .'%')
+            ->orWhere('members.no_telp', 'LIKE', '%'. $request->data .'%')
+            ->orWhere('members.email', 'LIKE', '%'. $request->data .'%')
+            ->orWhere('members.username', 'LIKE', '%'. $request->data .'%')
+            ->select('members.id','members.nama', 'members.alamat', 'members.tgl_lahir', 'members.no_telp', 'members.email', 'members.username', DB::raw('IFNULL(members.deactived_membership_at, "Belum Aktif") as deactived_membership_at'), 'members.deposit_reguler', 'members.deposit_kelas_paket', DB::raw('IFNULL(members.deactived_deposit_kelas_paket, "Belum Aktif") as deactived_deposit_kelas_paket'), DB::raw('IFNULL(kelas.nama , "-") as kelas_deposit_kelas_paket'))
             ->get();
         
         return response()->json([
@@ -117,7 +124,7 @@ class MemberController extends Controller
                 'success' => false,
                 'message' => 'Anda tidak punya akses',
                 'data' => null
-            ], 400);
+            ], 401);
         }
         $member = member::where('id', $id)->first();
         if(is_null($member)){
@@ -139,8 +146,8 @@ class MemberController extends Controller
         if($validator->fails()){
             return response()->json([
                 'success' => false,
-                'message' => 'Semua data member harus diisi',
-                'data' => $validator->errors()
+                'message' => $validator->errors(),
+                'data' => null,
             ], 400);
         }
 
@@ -172,7 +179,7 @@ class MemberController extends Controller
                 'success' => false,
                 'message' => 'Anda tidak punya akses',
                 'data' => null
-            ], 400);
+            ], 401);
         }
         $member = member::where('id', $id)->first();
         if(is_null($member)){

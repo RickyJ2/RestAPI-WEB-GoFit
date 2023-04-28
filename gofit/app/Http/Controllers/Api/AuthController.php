@@ -35,11 +35,11 @@ class AuthController extends Controller
 
         if(!is_null($user) && Hash::check($loginData['password'], $user->password)){
             $token = $user->createToken('authToken')->plainTextToken;
+            $tokenString = substr($token, strpos($token, '|') + 1);
             return response()->json([
                 'success' => true,
                 'message' => 'Login Berhasil',
-                'data' => $user,
-                'token' => $token,
+                'data' => $tokenString,
             ], 200);
         }else{
             return response()->json([

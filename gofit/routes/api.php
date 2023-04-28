@@ -24,6 +24,8 @@ Route::get('jadwalUmum/index', 'App\Http\Controllers\Api\JadwalUmumController@in
 Route::group(['middleware' => 'auth:sanctum'], function(){
     Route::post('logout', 'App\Http\Controllers\Api\AuthController@logout');
 
+    Route::get('pegawai/index', 'App\Http\Controllers\Api\PegawaiController@index');
+
     //member (hak akses kasir)
     Route::get('member/index', 'App\Http\Controllers\Api\MemberController@index');
     Route::post('member/register', 'App\Http\Controllers\Api\MemberController@register');

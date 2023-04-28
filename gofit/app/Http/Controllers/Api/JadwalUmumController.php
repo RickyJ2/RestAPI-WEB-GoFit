@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\jabatan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -42,7 +41,7 @@ class JadwalUmumController extends Controller
                 'success' => false,
                 'message' => 'Anda tidak punya akses',
                 'data' => null
-            ], 400);
+            ], 401);
         }
         $validator = Validator::make($request->all(), [
             'instruktur_id' => 'required|integer',
@@ -60,7 +59,9 @@ class JadwalUmumController extends Controller
         if(self::cekJadwalInstruktur($request)){
             return response()->json([
                 'success' => false,
-                'message' => 'Instruktur sudah ada jadwalnya',
+                'message' => [
+                    'instruktur_id' => ['Instruktur sudah ada jadwalnya'],
+                ],
                 'data' => null
             ], 400);
         }
@@ -90,7 +91,7 @@ class JadwalUmumController extends Controller
                 'success' => false,
                 'message' => 'Anda tidak punya akses',
                 'data' => null
-            ], 400);
+            ], 401);
         }
         $validator = Validator::make($request->all(), [
             'instruktur_id' => 'required|integer',
@@ -108,7 +109,9 @@ class JadwalUmumController extends Controller
         if(self::cekJadwalInstruktur($request)){
             return response()->json([
                 'success' => false,
-                'message' => 'Instruktur sudah ada jadwalnya',
+                'message' => [
+                    'instruktur_id' => 'Instruktur sudah ada jadwalnya',
+                ],
                 'data' => null
             ], 400);
         }
@@ -145,7 +148,7 @@ class JadwalUmumController extends Controller
                 'success' => false,
                 'message' => 'Anda tidak punya akses',
                 'data' => null
-            ], 400);
+            ], 401);
         }
         $jadwalUmum = jadwalUmum::find($id);
         if(is_null($jadwalUmum)){
@@ -174,8 +177,17 @@ class JadwalUmumController extends Controller
         $jadwalUmum = DB::table('jadwal_umums')
             ->join('instrukturs', 'jadwal_umums.instruktur_id', '=', 'instrukturs.id')
             ->join('kelas', 'jadwal_umums.kelas_id', '=', 'kelas.id')
-            ->select('jadwal_umums.*', 'instrukturs.nama as nama_instruktur', 'kelas.nama as nama_kelas', 'kelas.harga as harga_kelas')
-            ->get();
+            ->select('jadwal_umums.*', 'instrukturs.nama as nama_instruktur', 'instrukturs.alamat as alamat_instruktur','instrukturs.tgl_lahir as tgl_lahir_instruktur', 'instrukturs.no_telp as no_telp_instruktur', 'instrukturs.username as username_instruktur' ,'kelas.nama as nama_kelas', 'kelas.harga as harga_kelas')
+            ->orderByRaw("FIELD(hari, 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday')")
+            ->orderBy('jam_mulai')
+            ->get()
+            ->groupBy('hari')
+            ->map(function ($items) {
+                return $items->map(function ($item) {
+                    $item->jam_mulai = date('H:i', strtotime($item->jam_mulai));
+                    return $item;
+                })->sortBy('jam_mulai');
+            });
         return response()->json([
             'success' => true,
             'message' => 'Daftar Jadwal Umum',

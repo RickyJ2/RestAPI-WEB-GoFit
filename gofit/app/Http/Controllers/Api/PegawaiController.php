@@ -10,6 +10,22 @@ use App\Models\pegawai;
 
 class PegawaiController extends Controller
 {
+    //dapat pegawai dari token
+    public function index(Request $request){
+        $pegawai = pegawai::find($request->user()->id);
+        if(is_null($pegawai)){
+            return response()->json([
+                'success' => false,
+                'message' => 'Pegawai tidak ditemukan',
+                'data' => null
+            ], 404);
+        }
+        return response()->json([
+            'success' => true,
+            'message' => 'Berhasil mendapatkan pegawai',
+            'data' => $pegawai
+        ], 200);
+    }
     //Ubah password MO berdasarkan token
     public function ubahPassword(Request $request){
         $pegawai = pegawai::find($request->user()->id);
