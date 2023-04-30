@@ -16,8 +16,8 @@ class JadwalUmumController extends Controller
     public function cekJadwalInstruktur(Request $request){
         $jadwalUmum = jadwalUmum::where('instruktur_id', $request->instruktur_id)
             ->where('hari', $request->hari)
-            ->where('jam_mulai', '>' ,Carbon::parse($request->jam_mulai)->subHours(2)->format('H:i'))
-            ->where('jam_mulai', '<' ,Carbon::parse($request->jam_mulai)->addHours(2)->format('H:i'))
+            ->where('jam_mulai', '>' ,Carbon::parse($request->jam_mulai)->subHour()->format('H:i'))
+            ->where('jam_mulai', '<' ,Carbon::parse($request->jam_mulai)->addHour()->format('H:i'))
             ->first();
         if(is_null($jadwalUmum)){
             return false;
@@ -110,7 +110,7 @@ class JadwalUmumController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => [
-                    'instruktur_id' => 'Instruktur sudah ada jadwalnya',
+                    'instruktur_id' => ['Instruktur sudah ada jadwalnya'],
                 ],
                 'data' => null
             ], 400);

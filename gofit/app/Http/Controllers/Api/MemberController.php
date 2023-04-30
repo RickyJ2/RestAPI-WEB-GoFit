@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
 use App\Models\member;
 use App\Models\pegawai;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class MemberController extends Controller
 {
@@ -31,6 +32,7 @@ class MemberController extends Controller
         }
         $member = DB::table('members')
             ->leftJoin('kelas', 'members.kelas_deposit_kelas_paket_id', '=', 'kelas.id')
+            ->where('deleted_at', null)
             ->select('members.id','members.nama', 'members.alamat', 'members.tgl_lahir', 'members.no_telp', 'members.email', 'members.username', DB::raw('IFNULL(members.deactived_membership_at, "Belum Aktif") as deactived_membership_at'), 'members.deposit_reguler', 'members.deposit_kelas_paket', DB::raw('IFNULL(members.deactived_deposit_kelas_paket, "Belum Aktif") as deactived_deposit_kelas_paket'), DB::raw('IFNULL(kelas.nama , "-") as kelas_deposit_kelas_paket'))
             ->get();
         return response()->json([
@@ -53,7 +55,7 @@ class MemberController extends Controller
             'alamat' => 'required|string',
             'tgl_lahir' => 'required|date|date_format:Y-m-d',
             'no_telp' => 'required|string',
-            'email' => 'required|string|email',
+            'email' => 'required|string|email:rfc,dns',
             'username' => 'required|unique:members,username|unique:instrukturs,username|unique:pegawais,username',
             'password' => 'required|string',
         ]);

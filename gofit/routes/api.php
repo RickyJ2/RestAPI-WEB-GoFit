@@ -14,6 +14,8 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+Route::post('cekInstruktur', 'App\Http\Controllers\Api\JadwalUmumController@cekJadwalInstruktur');
+
 Route::get('infoUmum', 'App\Http\Controllers\Api\InfoUmumController@show');
 Route::post('loginWeb', 'App\Http\Controllers\Api\AuthController@loginWeb');
 Route::post('loginMobile', 'App\Http\Controllers\Api\AuthController@loginMobile');

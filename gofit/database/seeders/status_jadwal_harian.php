@@ -15,7 +15,7 @@ class status_jadwal_harian extends Seeder
         DB::table('status_jadwal_harians')->insert([[
             'jenis_status' => 'libur',
         ],[
-            'jenis_status' => 'digantikan',
+            'jenis_status' => 'menggantikan',
         ],
         ]);
     }
