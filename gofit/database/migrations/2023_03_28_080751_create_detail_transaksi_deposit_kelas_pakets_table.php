@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreign('no_nota')->nullable()->default(null)->references('id')->on('transaksis')->cascadeOnUpdate()->cascadeOnDelete();
             $table->foreignId('promo_id')->nullable()->default(null)->constrained('promos')->cascadeOnUpdate()->cascadeOnDelete();
             $table->foreignId('kelas_id')->constrained('kelas')->cascadeOnUpdate()->cascadeOnDelete();
-            $table->integer('nominal');
+            $table->integer('nominal'); //kuantitas dari kelas
             $table->integer('total');
             $table->timestamp('created_at')->default(DB::raw('CURRENT_TIMESTAMP'));
             $table->timestamp('updated_at')->default(DB::raw('CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP'));

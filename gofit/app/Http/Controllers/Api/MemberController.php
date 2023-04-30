@@ -104,7 +104,8 @@ class MemberController extends Controller
 
         $member = DB::table('members')
             ->leftJoin('kelas', 'members.kelas_deposit_kelas_paket_id', '=', 'kelas.id')
-            ->where('members.id', 'LIKE', '%'. $request->data .'%')
+            ->where('deleted_at', null)
+            ->orWhere('members.id', 'LIKE', '%'. $request->data .'%')
             ->orWhere('members.nama', 'LIKE', '%'. $request->data .'%')
             ->orWhere('members.tgl_lahir', 'LIKE', '%'. $request->data .'%')
             ->orWhere('members.no_telp', 'LIKE', '%'. $request->data .'%')

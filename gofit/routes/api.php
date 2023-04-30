@@ -38,6 +38,14 @@ Route::group(['middleware' => 'auth:sanctum'], function(){
     //member token
     Route::get('member/showProfile', 'App\Http\Controllers\Api\MemberController@showProfile');
     
+    //promo (hak akses kasir)
+    Route::get('promo/index', 'App\Http\Controllers\Api\PromoController@index');
+
+    //transaksi (hak akses kasir)
+    Route::post('transaksi/aktivasi', 'App\Http\Controllers\Api\TransaksiController@activationTransaksi');
+    Route::post('transaksi/depositReguler', 'App\Http\Controllers\Api\TransaksiController@depositRegulerTransaksi');
+    Route::post('transaksi/depositKelasPaket', 'App\Http\Controllers\Api\TransaksiController@depositKelasPaketTransaksi');
+
     //instruktur (hak akses admin)
     Route::get('instruktur/index', 'App\Http\Controllers\Api\InstrukturController@index');
     Route::post('instruktur/register', 'App\Http\Controllers\Api\InstrukturController@register');

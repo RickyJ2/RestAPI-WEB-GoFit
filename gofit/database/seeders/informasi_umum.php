@@ -13,9 +13,9 @@ class informasi_umum extends Seeder
     public function run(): void
     {
         DB::table('informasi_umums')->insert([
-            'nama' => 'Gym GoFit',
+            'nama' => 'GoFit',
             'alamat' => 'Jl. Centralpark No. 10 Yogyakarta',
-            'deskripsi' => 'Mari lebih Fit bersama GoFit!',
+            'deskripsi' => 'c',
             'biaya_aktivasi_membership' => 3000000,
             'min_deposit_reguler' => 500000,
             'max_deposit_kelas_awal' => 0,

@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('promos', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('jenis_promo_id')->constrained('jenis_deposits')->restrictOnUpdate()->restrictOnDelete();
+            $table->foreignId('jenis_promo_id')->constrained('jenis_transaksis')->restrictOnUpdate()->restrictOnDelete();
             $table->integer('kriteria_pembelian');
             $table->integer('bonus');
             $table->integer('masa_berlaku')->nullable();

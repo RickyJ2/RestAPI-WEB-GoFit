@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
 use App\Models\pegawai;
 use App\Models\jadwal_umum as jadwalUmum;
+use App\Models\izin_instruktur as izinInstruktur;
 
 class JadwalUmumController extends Controller
 {
@@ -19,7 +20,13 @@ class JadwalUmumController extends Controller
             ->where('jam_mulai', '>' ,Carbon::parse($request->jam_mulai)->subHour()->format('H:i'))
             ->where('jam_mulai', '<' ,Carbon::parse($request->jam_mulai)->addHour()->format('H:i'))
             ->first();
-        if(is_null($jadwalUmum)){
+        $izin_instruktur = izinInstruktur::where('instruktur_penganti_id', $request->instruktur_id)
+            ->leftJoin('jadwal_umums', 'izin_instrukturs.jadwal_umum_id', '=', 'jadwal_umums.id')    
+            ->where('jadwal_umums.hari', $request->hari)
+            ->where('jadwal_umums.jam_mulai', '>' ,Carbon::parse($request->jam_mulai)->subHour()->format('H:i'))
+            ->where('jadwal_umums.jam_mulai', '<' ,Carbon::parse($request->jam_mulai)->addHour()->format('H:i'))
+            ->first();
+        if(is_null($jadwalUmum) && is_null($izin_instruktur)){
             return false;
         }else{
             return true;

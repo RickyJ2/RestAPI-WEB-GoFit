@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class transaksi extends Model
 {
     use HasFactory;
+    protected $keyType = 'string';
     protected $fillable = [
         'pegawai_id',
         'member_id',

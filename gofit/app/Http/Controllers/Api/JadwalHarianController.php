@@ -7,7 +7,6 @@ use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use App\Models\izin_instruktur as izinInstruktur;
-use App\Models\jadwal_umum as jadwalUmum;
 use App\Models\jadwal_harian as jadwalHarian;
 use App\Models\pegawai;
 
@@ -48,10 +47,15 @@ class JadwalHarianController extends Controller
                 'data' => null,
             ], 400);
         }
-        $start_date = Carbon::now()->subDays(14)->startOfWeek(Carbon::SUNDAY)->addDay();
-        $end_date =  Carbon::now()->subDays(14)->startOfWeek(Carbon::SUNDAY)->addDays(7);
+        $start_date = Carbon::now()->startOfWeek(Carbon::SUNDAY)->addDay();
+        $end_date =  Carbon::now()->startOfWeek(Carbon::SUNDAY)->addDays(7);
         for($date = $start_date; $date->lte($end_date); $date->addDay()) {
-            $jadwalUmum = jadwalUmum::where('hari', Carbon::parse($date)->format('l'))->get();
+            //$jadwalUmum = jadwalUmum::where('hari', Carbon::parse($date)->format('l'))->get();
+            $jadwalUmum = DB::table('jadwalUmums')
+                ->leftJoin('instrukturs', 'jadwalUmums.instruktur_id', '=', 'instrukturs.id')
+                ->where('jadwalUmums.hari', Carbon::parse($date)->format('l'))
+                ->where('instrukturs.deleted_at', null)
+                ->get();
             for($index = 0; $index < count($jadwalUmum); $index++){
                 $jadwalHarian = new jadwalHarian;
                 $jadwalHarian->jadwal_umum_id = $jadwalUmum[$index]->id;

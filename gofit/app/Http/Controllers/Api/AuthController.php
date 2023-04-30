@@ -69,10 +69,10 @@ class AuthController extends Controller
         $user = null;
         $role = null;
     
-        if(!is_null(member::where('username', $loginData['username'])->first())){
+        if(!is_null(member::where('username', $loginData['username'])->where('deleted_at', null)->first())){
             $user = member::where('username', $loginData['username'])->first();
             $role = 'member';
-        } else if(!is_null(instruktur::where('username', $loginData['username'])->first())){
+        } else if(!is_null(instruktur::where('username', $loginData['username'])->where('deleted_at', null)->first())){
             $user = instruktur::where('username', $loginData['username'])->first();
             $role = 'instruktur';
         } else if(!is_null(pegawai::where('username', $loginData['username'])->where('jabatan_id', 1)->first())){

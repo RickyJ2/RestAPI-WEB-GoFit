@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
@@ -47,7 +48,9 @@ class InstrukturController extends Controller
                 'data' => null,
               ], 401);
          }
-         $instruktur = instruktur::all();
+         $instruktur = DB::table('instrukturs')
+            ->where('deleted_at', null)
+            ->get();
          return response()->json([
               'success' => true,
               'message' => 'Daftar Instruktur',
@@ -112,6 +115,7 @@ class InstrukturController extends Controller
             ], 401);
         }
         $instruktur = instruktur::where('id', $request->data)
+            ->where('deleted_at', null)
             ->orWhere('nama', 'like', '%'.$request->data.'%')
             ->orWhere('tgl_lahir', 'like', '%'.$request->data.'%')
             ->orWhere('no_telp', 'like', '%'.$request->data.'%')

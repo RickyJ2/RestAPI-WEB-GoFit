@@ -11,6 +11,7 @@ use App\Models\detail_transaksi_deposit_reguler as detailTransaksiDepositReguler
 use App\Models\detail_transaksi_deposit_kelas_paket as detailTransaksiDepositKelasPaket;
 use App\Models\pegawai;
 use App\Models\member;
+use App\Models\promo;
 
 class transaksiController extends Controller
 {
@@ -40,7 +41,7 @@ class transaksiController extends Controller
         $transaksi->jenis_transaksi_id = $request->jenis_transaksi_id;
         $transaksi->save();
         
-        $transaksi = Transaksi::where('pegawai_id', $request->pegawai_id)
+        $transaksi = Transaksi::where('pegawai_id', $request->user()->id)
             ->where('member_id', $request->member_id)
             ->where('jenis_transaksi_id', $request->jenis_transaksi_id)
             ->where('created_at', $transaksi->created_at)
@@ -55,16 +56,16 @@ class transaksiController extends Controller
                 'success' => false,
                 'message' => 'Anda tidak punya akses',
                 'data' => null,
-            ], 400);
+            ], 401);
         }
         $validator = Validator::make($request->all(), [
-            'member_id' => 'required|integer',
+            'member_id' => 'required',
             'jenis_transaksi_id' => 'required',
         ]);
         if($validator->fails()){
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal membuat transaksi',
+                'message' => $validator->errors(),
                 'data' => null
             ], 400);
         }
@@ -87,8 +88,13 @@ class transaksiController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Berhasil membuat transaksi aktivasi',
-                'data' => $transaksi,
-                'masa aktif member' => $member->deactived_membership_at
+                'data' => [
+                    'no_nota' => $transaksi->id,
+                    'member_id' => $member->id,
+                    'nama_member' => $member->nama,
+                    'masa_aktif_member' => $member->deactived_membership_at,
+                    'created_at' => Carbon::parse($transaksi->created_at)->format('d/m/Y H:i'),
+                ],
             ], 200);
         }else{
             return response()->json([
@@ -105,18 +111,17 @@ class transaksiController extends Controller
                 'success' => false,
                 'message' => 'Anda tidak punya akses',
                 'data' => null,
-            ], 400);
+            ], 401);
         }
         $validator = Validator::make($request->all(), [
-            'pegawai_id' => 'required|integer',
-            'member_id' => 'required|integer',
+            'member_id' => 'required',
             'jenis_transaksi_id' => 'required',
             'nominal' => 'required|integer|min:500000',
         ]);
         if($validator->fails()){
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal membuat transaksi',
+                'message' => $validator->errors(),
                 'data' => null
             ], 400);
         }
@@ -125,23 +130,36 @@ class transaksiController extends Controller
         if(is_null($transaksi)){
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal membuat transaksi deposit reguler',
+                'message' => 'Gagal membuat transaksi',
                 'data' => null
             ], 400);
         }
         $detailTransaksi = new detailTransaksiDepositReguler;
-        $detailTransaksi->no_nota = $transaksi->id;
-        $detailTransaksi->promo_id = $request->promo_id;
+        $detailTransaksi->no_nota = $transaksi->id;       
         $detailTransaksi->nominal = $request->nominal;
+
         //update deposit member
         $member = member::find($request->member_id);
-        $member->deposit_reguler += $request->total;
+        $sisa_deposit = $member->deposit_reguler; //simpan untuk dikembalikan ke client
+        $member->deposit_reguler += $request->nominal;
+
+        if(isset($request->promo_id)){
+            $detailTransaksi->promo_id = $request->promo_id;
+            $promo = promo::find($request->promo_id);
+            $member->deposit_reguler += $promo->bonus;
+        }
          
         if($detailTransaksi->save() && $member->save()){
             return response()->json([
                 'success' => true,
                 'message' => 'Berhasil membuat transaksi deposit reguler',
-                'data' => $transaksi
+                'data' => ['no_nota' => $transaksi->id,
+                    'member_id' => $member->id,
+                    'nama_member' => $member->nama,
+                    'sisa_deposit' => $sisa_deposit,
+                    'total_deposit' => $member->deposit_reguler,
+                    'created_at' => Carbon::parse($transaksi->created_at)->format('d/m/Y H:i')
+                    ],
             ], 200);
         }else{
             return response()->json([
@@ -158,11 +176,10 @@ class transaksiController extends Controller
                 'success' => false,
                 'message' => 'Anda tidak punya akses',
                 'data' => null,
-            ], 400);
+            ], 401);
         }
         $validator = Validator::make($request->all(), [
-            'pegawai_id' => 'required|integer',
-            'member_id' => 'required|integer',
+            'member_id' => 'required',
             'jenis_transaksi_id' => 'required',
             'kelas_id' => 'required|integer',
             'nominal' => 'required|integer',
@@ -171,7 +188,7 @@ class transaksiController extends Controller
         if($validator->fails()){
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal membuat transaksi',
+                'message' => $validator->errors(),
                 'data' => null
             ], 400);
         }
@@ -180,7 +197,7 @@ class transaksiController extends Controller
                 'success' => false,
                 'message' => 'Member sudah memiliki kelas paket',
                 'data' => null
-            ], 400);
+            ], 402);
         }
         $transaksi = self::createTransaksi($request);
         if(is_null($transaksi)){
@@ -193,13 +210,12 @@ class transaksiController extends Controller
         $detailTransaksi = new detailTransaksiDepositKelasPaket;
         $detailTransaksi->no_nota = $transaksi->id;
         $detailTransaksi->kelas_id = $request->kelas_id;
-        $detailTransaksi->promo_id = $request->promo_id;
         $detailTransaksi->nominal = $request->nominal;
         $detailTransaksi->total = $request->total;
 
         //update data member
         $member = member::find($request->member_id);
-        $member->deposit_kelas_paket += $request->total;
+        $member->deposit_kelas_paket += $request->nominal;
         $member->kelas_deposit_kelas_paket_id = $request->kelas_id;
         if($request->nominal < 10){
             $member->deactived_deposit_kelas_paket = Carbon::now()->addMonth();
@@ -207,12 +223,24 @@ class transaksiController extends Controller
             $member->deactived_deposit_kelas_paket = Carbon::now()->addMonths(2);
         }
 
+        if(isset($request->promo_id)){
+            $detailTransaksi->promo_id = $request->promo_id;
+            $promo = promo::find($request->promo_id);
+            $member->deposit_kelas_paket += $promo->bonus;
+        }
+
         if($detailTransaksi->save() && $member->save()){
             return response()->json([
                 'success' => true,
                 'message' => 'Berhasil membuat transaksi deposit kelas paket',
-                'data' => $transaksi,
-                'masa aktif deposit kelas paket' => $member->deactived_deposit_kelas_paket
+                'data' => [$transaksi,
+                    'no_nota' => $transaksi->id,
+                    'member_id' => $member->id,
+                    'nama_member' => $member->nama,
+                    'total_deposit' => $member->deposit_kelas_paket,
+                    'created_at' => Carbon::parse($transaksi->created_at)->format('d/m/Y H:i'),
+                    'masa_aktif_deposit_kelas_paket' => Carbon::parse($member->deactived_deposit_kelas_paket)->format('d/m/Y'),
+                ],
             ], 200);
         }else{
             return response()->json([

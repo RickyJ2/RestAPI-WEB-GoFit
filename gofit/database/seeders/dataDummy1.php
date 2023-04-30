@@ -7,9 +7,30 @@ use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Carbon\Carbon;
+use App\Models\jadwal_umum as jadwalUmum;
+use App\Models\jadwal_harian as jadwalHarian;
+use App\Models\izin_instruktur as izinInstruktur;
 
 class dataDummy1 extends Seeder
 {
+    public function cekJadwalInstruktur(String $jam_mulai, String $hari,int $id){
+        $jadwalUmum = jadwalUmum::where('instruktur_id', $id)
+            ->where('hari', $hari)
+            ->where('jam_mulai', '>' ,Carbon::parse($jam_mulai)->subHour()->format('H:i'))
+            ->where('jam_mulai', '<' ,Carbon::parse($jam_mulai)->addHour()->format('H:i'))
+            ->first();
+        $izin_instruktur = izinInstruktur::where('instruktur_penganti_id', $id)
+            ->leftJoin('jadwal_umums', 'izin_instrukturs.jadwal_umum_id', '=', 'jadwal_umums.id')    
+            ->where('jadwal_umums.hari', $hari)
+            ->where('jadwal_umums.jam_mulai', '>' ,Carbon::parse($jam_mulai)->subHour()->format('H:i'))
+            ->where('jadwal_umums.jam_mulai', '<' ,Carbon::parse($jam_mulai)->addHour()->format('H:i'))
+            ->first();
+        if(is_null($jadwalUmum) && is_null($izin_instruktur)){
+            return false;
+        }else{
+            return true;
+        }
+    }
     /**
      * Run the database seeds.
      */
@@ -496,6 +517,77 @@ class dataDummy1 extends Seeder
             DB::table('members')
                 ->where('id', $member->id)
                 ->update(['deactived_membership_at' => $joinDateRand->addDay()->addYear(),]);
+        }
+
+        //Ajukan Izin Instruktur
+        $start_date = new Carbon('2023-04-01');
+        $end_date = new Carbon('2023-04-30');
+        $list_keterangan_izin = ['Ada jadwal mengajar di gym lain', 'Nikahan', 'Sakit', 'Capek', 'Lelah', 'Ada urusan keluarga', 'Ada urusan lain', 'Ada acara', 'Ada rapat', 'Ada tugas', 'Ada kegiatan', 'Ada acara keluarga', 'Ada acara lain', 'Ada tugas kuliah', 'Ada tugas kampus', 'Ada tugas lain', 'Ada tugas kantor'];
+        for($date = $start_date; $date <= $end_date; $date->addDays(rand(3, 10))){
+            $jadwalUmum = DB::table('jadwal_umums')
+                ->where('hari', '=' , $date->format('l'))
+                ->get();
+            $jadwalUmumRand = $jadwalUmum[rand(0, count($jadwalUmum) - 1)];
+            //cara instruktur penganti
+            $instruktur_penganti_id = rand(1,12);
+            while($this->cekJadwalInstruktur($jadwalUmumRand->jam_mulai, $jadwalUmumRand->hari, $instruktur_penganti_id) && $instruktur_penganti_id != $jadwalUmumRand->instruktur_id){
+                $instruktur_penganti_id += rand(1, 3);
+            }
+
+            DB::table('izin_instrukturs')->insert([
+                'jadwal_umum_id' => $jadwalUmumRand->id,
+                'instruktur_pengaju_id' => $jadwalUmumRand->instruktur_id,
+                'instruktur_penganti_id' => $instruktur_penganti_id,
+                'tanggal_izin' => $date,
+                'keterangan' => $list_keterangan_izin[rand(0, count($list_keterangan_izin) - 1)]
+            ]);
+        }
+
+        //random confirmed izin instruktur
+        $ListIzin = DB::table('izin_instrukturs')
+            ->where('is_confirmed', '=', false)
+            ->get();
+        for($i = 0; $i < count($ListIzin); $i++){
+            $random = rand(0, 1);
+            if($random == 1){
+                DB::table('izin_instrukturs')
+                    ->where('id', $ListIzin[$i]->id)
+                    ->update(['is_confirmed' => true]);
+            }
+        }
+
+        //Jadwal Harian
+        $countJadwalHarian = 0;
+        for($i = 4; $i >= 1; $i--){
+            $start_date = Carbon::now()->subDays($i*7)->startOfWeek(Carbon::SUNDAY)->addDay();
+            $end_date =  Carbon::now()->subDays($i*7)->startOfWeek(Carbon::SUNDAY)->addDays(7);
+            for($date = $start_date; $date->lte($end_date); $date->addDay()) {
+                $jadwalUmum = jadwalUmum::where('hari', Carbon::parse($date)->format('l'))->get();
+                for($index = 0; $index < count($jadwalUmum); $index++){
+                    $jadwalHarian = new jadwalHarian;
+                    $jadwalHarian->jadwal_umum_id = $jadwalUmum[$index]->id;
+                    $jadwalHarian->tanggal = $date;
+                    
+                    $izinInstruktur = izinInstruktur::where('jadwal_umum_id', $jadwalUmum[$index]->id)
+                        ->where('tanggal_izin', $date)
+                        ->where('is_confirmed', true)
+                        ->first();
+                    if(!is_null($izinInstruktur)){
+                        $jadwalHarian->status_id = 2;
+                    }
+                    $jadwalHarian->save();    
+                    $countJadwalHarian ++;
+                }
+            }
+        }
+
+        //liburkan beberapa jadwal Harian
+        $jadwal_harian_id = 1;
+        while($jadwal_harian_id < $countJadwalHarian){   
+            $jadwalHarian = jadwalHarian::find($jadwal_harian_id);
+            $jadwalHarian->status_id = 1;
+            $jadwalHarian->save();
+            $jadwal_harian_id += rand(5,30);
         }
     }
 }

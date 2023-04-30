@@ -15,7 +15,6 @@ class DatabaseSeeder extends Seeder
         $this->call([
             informasi_umum::class,
             jabatan::class,
-            jenis_deposit::class,
             jenis_transaksi::class,
             promo::class,
             sesi_gym::class,
