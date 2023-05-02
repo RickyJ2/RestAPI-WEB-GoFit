@@ -51,9 +51,9 @@ class JadwalHarianController extends Controller
         $end_date =  Carbon::now()->startOfWeek(Carbon::SUNDAY)->addDays(7);
         for($date = $start_date; $date->lte($end_date); $date->addDay()) {
             //$jadwalUmum = jadwalUmum::where('hari', Carbon::parse($date)->format('l'))->get();
-            $jadwalUmum = DB::table('jadwalUmums')
-                ->leftJoin('instrukturs', 'jadwalUmums.instruktur_id', '=', 'instrukturs.id')
-                ->where('jadwalUmums.hari', Carbon::parse($date)->format('l'))
+            $jadwalUmum = DB::table('jadwal_umums')
+                ->leftJoin('instrukturs', 'jadwal_umums.instruktur_id', '=', 'instrukturs.id')
+                ->where('jadwal_umums.hari', Carbon::parse($date)->format('l'))
                 ->where('instrukturs.deleted_at', null)
                 ->get();
             for($index = 0; $index < count($jadwalUmum); $index++){

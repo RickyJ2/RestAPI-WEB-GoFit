@@ -92,7 +92,7 @@ class transaksiController extends Controller
                     'no_nota' => $transaksi->id,
                     'member_id' => $member->id,
                     'nama_member' => $member->nama,
-                    'masa_aktif_member' => $member->deactived_membership_at,
+                    'masa_aktif_member' => Carbon::parse($member->deactived_membership_at)->format('d/m/Y'),
                     'created_at' => Carbon::parse($transaksi->created_at)->format('d/m/Y H:i'),
                 ],
             ], 200);
