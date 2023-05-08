@@ -30,11 +30,15 @@ Route::group(['middleware' => 'auth:sanctum'], function(){
 
     //member (hak akses kasir)
     Route::get('member/index', 'App\Http\Controllers\Api\MemberController@index');
+    Route::get('member/indexMembershipExpired', 'App\Http\Controllers\Api\MemberController@indexMembershipExpired');
+    Route::get('member/indexDepositKelasExpired', 'App\Http\Controllers\Api\MemberController@indexDepositKelasExpired');
     Route::post('member/register', 'App\Http\Controllers\Api\MemberController@register');
     Route::post('member/find', 'App\Http\Controllers\Api\MemberController@find');
     Route::put('member/update/{id}', 'App\Http\Controllers\Api\MemberController@update');
     Route::delete('member/{id}', 'App\Http\Controllers\Api\MemberController@delete');
     Route::put('member/resetPassword/{id}', 'App\Http\Controllers\Api\MemberController@resetPasswordMember');
+    //reset Data expire membership, deposit kelas member (hak akses kasir)
+    Route::get('member/resetMemberExpired', 'App\Http\Controllers\Api\resetController@resetMemberExpired');
     //member token
     Route::get('member/showProfile', 'App\Http\Controllers\Api\MemberController@showProfile');
     
@@ -52,6 +56,8 @@ Route::group(['middleware' => 'auth:sanctum'], function(){
     Route::post('instruktur/find', 'App\Http\Controllers\Api\InstrukturController@find');
     Route::put('instruktur/update/{id}', 'App\Http\Controllers\Api\InstrukturController@update');
     Route::delete('instruktur/{id}', 'App\Http\Controllers\Api\InstrukturController@delete');
+    //reset akumulasi terlambat instruktur
+    Route::get('instruktur/resetAkumulasiTerlambat', 'App\Http\Controllers\Api\resetController@resetAkumulasiTerlambat');
     //instruktur token
     Route::put('instruktur/ubahPassword', 'App\Http\Controllers\Api\InstrukturController@ubahPassword');
     Route::get('instruktur/showProfile', 'App\Http\Controllers\Api\InstrukturController@showProfile');
@@ -72,4 +78,11 @@ Route::group(['middleware' => 'auth:sanctum'], function(){
     Route::post('jadwalHarian/find', 'App\Http\Controllers\Api\JadwalHarianController@find');
     //Tampil Jadwal Harian + Jadwal Umum  + Kelas + Instruktur + Status
     Route::get('jadwalHarian/index', 'App\Http\Controllers\Api\JadwalHarianController@index');
+
+    //Izin Instruktur (MO)
+    Route::get('izinInstruktur/index', 'App\Http\Controllers\Api\IzinInstrukturController@index');
+    Route::put('izinInstruktur/verifikasi/{id}', 'App\Http\Controllers\Api\IzinInstrukturController@updateVerifIzin');
+    //Izin Instruktur (Instruktur)
+    Route::post('izinInstruktur/add', 'App\Http\Controllers\Api\IzinInstrukturController@add');
+    Route::get('izinInstruktur/show', 'App\Http\Controllers\Api\IzinInstrukturController@show');
 });

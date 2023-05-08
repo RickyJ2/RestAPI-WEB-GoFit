@@ -272,24 +272,5 @@ class InstrukturController extends Controller
             'data' => $instruktur
         ], 200);
     }
-    //reset akumulasi terlambat instruktur per bulan
-    public function resetAkumulasiTerlambat(Request $request){
-        if(!self::cekKasir($request)){
-            return response()->json([
-                'success' => false,
-                'message' => 'Anda tidak punya akses',
-                'data' => null
-            ], 400);
-        }
-        $instruktur = instruktur::all();
-        foreach($instruktur as $i){
-            $i->akumulasi_terlambat = 0;
-            $i->save();
-        }
-        return response()->json([
-            'success' => true,
-            'message' => 'Berhasil reset akumulasi terlambat',
-            'data' => null
-        ], 200);
-    }
+    
 }

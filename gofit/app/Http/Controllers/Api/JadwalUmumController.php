@@ -20,11 +20,13 @@ class JadwalUmumController extends Controller
             ->where('jam_mulai', '>' ,Carbon::parse($request->jam_mulai)->subHour()->format('H:i'))
             ->where('jam_mulai', '<' ,Carbon::parse($request->jam_mulai)->addHour()->format('H:i'))
             ->first();
-        $izin_instruktur = izinInstruktur::where('instruktur_penganti_id', $request->instruktur_id)
-            ->leftJoin('jadwal_umums', 'izin_instrukturs.jadwal_umum_id', '=', 'jadwal_umums.id')    
+        $izin_instruktur = DB::table('izin_instrukturs')
+            ->leftJoin('jadwal_umums', 'izin_instrukturs.jadwal_umum_id', '=', 'jadwal_umums.id')
+            ->where('izin_instrukturs.instruktur_penganti_id', $request->instruktur_id)    
             ->where('jadwal_umums.hari', $request->hari)
             ->where('jadwal_umums.jam_mulai', '>' ,Carbon::parse($request->jam_mulai)->subHour()->format('H:i'))
             ->where('jadwal_umums.jam_mulai', '<' ,Carbon::parse($request->jam_mulai)->addHour()->format('H:i'))
+            ->Where('izin_instrukturs.is_confirmed', '!=' ,1)
             ->first();
         if(is_null($jadwalUmum) && is_null($izin_instruktur)){
             return false;
@@ -185,6 +187,7 @@ class JadwalUmumController extends Controller
             ->join('instrukturs', 'jadwal_umums.instruktur_id', '=', 'instrukturs.id')
             ->join('kelas', 'jadwal_umums.kelas_id', '=', 'kelas.id')
             ->select('jadwal_umums.*', 'instrukturs.nama as nama_instruktur', 'instrukturs.alamat as alamat_instruktur','instrukturs.tgl_lahir as tgl_lahir_instruktur', 'instrukturs.no_telp as no_telp_instruktur', 'instrukturs.username as username_instruktur' ,'kelas.nama as nama_kelas', 'kelas.harga as harga_kelas')
+            ->where('instrukturs.deleted_at', null)
             ->orderByRaw("FIELD(hari, 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday')")
             ->orderBy('jam_mulai')
             ->get()

@@ -545,15 +545,13 @@ class dataDummy1 extends Seeder
 
         //random confirmed izin instruktur
         $ListIzin = DB::table('izin_instrukturs')
-            ->where('is_confirmed', '=', false)
+            ->where('is_confirmed', '=', 0)
             ->get();
         for($i = 0; $i < count($ListIzin); $i++){
-            $random = rand(0, 1);
-            if($random == 1){
-                DB::table('izin_instrukturs')
-                    ->where('id', $ListIzin[$i]->id)
-                    ->update(['is_confirmed' => true]);
-            }
+            $random = rand(1, 2);
+            DB::table('izin_instrukturs')
+                ->where('id', $ListIzin[$i]->id)
+                ->update(['is_confirmed' => $random]);
         }
 
         //Jadwal Harian
@@ -570,7 +568,7 @@ class dataDummy1 extends Seeder
                     
                     $izinInstruktur = izinInstruktur::where('jadwal_umum_id', $jadwalUmum[$index]->id)
                         ->where('tanggal_izin', $date)
-                        ->where('is_confirmed', true)
+                        ->where('is_confirmed', 2)
                         ->first();
                     if(!is_null($izinInstruktur)){
                         $jadwalHarian->status_id = 2;

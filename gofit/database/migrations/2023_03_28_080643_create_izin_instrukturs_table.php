@@ -18,7 +18,7 @@ return new class extends Migration
             $table->foreignId('instruktur_penganti_id')->constrained('instrukturs')->cascadeOnUpdate()->cascadeOnDelete();
             $table->date('tanggal_izin');
             $table->string('keterangan');
-            $table->boolean('is_confirmed')->default(false);
+            $table->integer('is_confirmed')->default(0);
             $table->timestamp('created_at')->default(DB::raw('CURRENT_TIMESTAMP'));
             $table->timestamp('updated_at')->default(DB::raw('CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP'));
         });

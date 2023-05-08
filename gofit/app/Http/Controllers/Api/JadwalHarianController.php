@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use App\Models\jadwal_umum as jadwalUmum;
 use App\Models\izin_instruktur as izinInstruktur;
 use App\Models\jadwal_harian as jadwalHarian;
 use App\Models\pegawai;
@@ -47,14 +48,16 @@ class JadwalHarianController extends Controller
                 'data' => null,
             ], 400);
         }
+
         $start_date = Carbon::now()->startOfWeek(Carbon::SUNDAY)->addDay();
         $end_date =  Carbon::now()->startOfWeek(Carbon::SUNDAY)->addDays(7);
         for($date = $start_date; $date->lte($end_date); $date->addDay()) {
             //$jadwalUmum = jadwalUmum::where('hari', Carbon::parse($date)->format('l'))->get();
             $jadwalUmum = DB::table('jadwal_umums')
-                ->leftJoin('instrukturs', 'jadwal_umums.instruktur_id', '=', 'instrukturs.id')
+                ->join('instrukturs', 'jadwal_umums.instruktur_id', '=', 'instrukturs.id')
                 ->where('jadwal_umums.hari', Carbon::parse($date)->format('l'))
                 ->where('instrukturs.deleted_at', null)
+                ->select('jadwal_umums.*')
                 ->get();
             for($index = 0; $index < count($jadwalUmum); $index++){
                 $jadwalHarian = new jadwalHarian;
@@ -63,7 +66,7 @@ class JadwalHarianController extends Controller
                 
                 $izinInstruktur = izinInstruktur::where('jadwal_umum_id', $jadwalUmum[$index]->id)
                     ->where('tanggal_izin', $date)
-                    ->where('is_confirmed', true)
+                    ->where('is_confirmed', 2)
                     ->first();
                 if(!is_null($izinInstruktur)){
                     $jadwalHarian->status_id = 2;
@@ -125,7 +128,7 @@ class JadwalHarianController extends Controller
         ->leftJoin('instrukturs as instrukturs_penganti', 'izin_instrukturs.instruktur_penganti_id', '=', 'instrukturs_penganti.id')
         ->select('jadwal_harians.id', 'jadwal_harians.tanggal', 'jadwal_umums.jam_mulai', 'jadwal_umums.hari' ,'kelas.nama as nama_kelas', 'instrukturs.nama as nama_instruktur', DB::raw('IFNULL(status_jadwal_harians.jenis_status, "") as jenis_status'), DB::raw('IFNULL(instrukturs_penganti.nama, "") as instruktur_penganti'))
         
-        ->orWhere('jadwal_harians.tanggal', 'like', '%'.$request->data.'%')
+            ->orWhere('jadwal_harians.tanggal', 'like', '%'.$request->data.'%')
             ->orWhere('jadwal_umums.jam_mulai', 'like', '%'.$request->data.'%')
             ->orWhere('kelas.nama', 'like', '%'.$request->data.'%')
             ->orWhere('instrukturs.nama', 'like', '%'.$request->data.'%')
@@ -145,6 +148,14 @@ class JadwalHarianController extends Controller
         ->groupBy(function ($items, $key) {
             return Carbon::parse($key)->startOfWeek()->format('Y-m-d');
         }, true);
+
+        if($jadwalHarian->isEmpty()){
+            return response()->json([
+                'success' => false,
+                'message' => 'Jadwal harian tidak ditemukan',
+                'data' => null
+            ], 400);
+        }
 
         return response()->json([
             'success' => true,
@@ -169,7 +180,7 @@ class JadwalHarianController extends Controller
             ->leftJoin('izin_instrukturs', function ($join) {
                 $join->on('jadwal_umums.id', '=', 'izin_instrukturs.jadwal_umum_id')
                     ->on('jadwal_harians.tanggal', '=', 'izin_instrukturs.tanggal_izin')
-                    ->where('izin_instrukturs.is_confirmed', true);
+                    ->where('izin_instrukturs.is_confirmed', 2);
             })
             ->leftJoin('instrukturs as instrukturs_penganti', 'izin_instrukturs.instruktur_penganti_id', '=', 'instrukturs_penganti.id')
             ->select('jadwal_harians.id', 'jadwal_harians.tanggal', 'jadwal_umums.jam_mulai', 'kelas.nama', 'instrukturs.nama as instruktur', 'status_jadwal_harians.jenis_status', 'instrukturs_penganti.nama as instruktur_penganti')
@@ -192,7 +203,7 @@ class JadwalHarianController extends Controller
             ->leftJoin('izin_instrukturs', function ($join) {
                 $join->on('jadwal_umums.id', '=', 'izin_instrukturs.jadwal_umum_id')
                     ->on('jadwal_harians.tanggal', '=', 'izin_instrukturs.tanggal_izin')
-                    ->where('izin_instrukturs.is_confirmed', true);
+                    ->where('izin_instrukturs.is_confirmed', 2);
             })
             ->leftJoin('instrukturs as instrukturs_penganti', 'izin_instrukturs.instruktur_penganti_id', '=', 'instrukturs_penganti.id')
             ->select('jadwal_harians.id', 'jadwal_harians.tanggal', 'jadwal_umums.jam_mulai','jadwal_umums.hari', 'kelas.nama as nama_kelas', 'instrukturs.nama as nama_instruktur', DB::raw('IFNULL(status_jadwal_harians.jenis_status, "") as jenis_status'), DB::raw('IFNULL(instrukturs_penganti.nama, "") as instruktur_penganti'))

@@ -158,7 +158,7 @@ class transaksiController extends Controller
                     'nama_member' => $member->nama,
                     'sisa_deposit' => $sisa_deposit,
                     'total_deposit' => $member->deposit_reguler,
-                    'created_at' => Carbon::parse($transaksi->created_at)->format('d/m/Y H:i')
+                    'created_at' => Carbon::parse($transaksi->created_at)->format('d/m/Y H:i'),
                     ],
             ], 200);
         }else{
