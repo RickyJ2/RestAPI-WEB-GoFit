@@ -33,8 +33,8 @@ return new class extends Migration
             $table->string('alamat');
             $table->date('tgl_lahir');
             $table->string('no_telp',15);
-            $table->string('username')->unique()->nullable();
-            $table->string('password')->nullable();
+            $table->string('username')->unique()->nullable()->default(null);
+            $table->string('password')->nullable()->default(null);
             $table->rememberToken();
             $table->timestamp('created_at')->default(DB::raw('CURRENT_TIMESTAMP'));
             $table->timestamp('updated_at')->default(DB::raw('CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP'));

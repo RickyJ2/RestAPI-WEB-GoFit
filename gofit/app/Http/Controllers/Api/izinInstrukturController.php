@@ -140,7 +140,7 @@ class izinInstrukturController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => [
-                    'instruktur_id' => ['Instruktur pengganti sudah ada jadwalnya'],
+                    'instruktur_penganti_id' => ['Instruktur pengganti sudah ada jadwalnya'],
                 ],
                 'data' => null
             ], 400);
@@ -178,10 +178,11 @@ class izinInstrukturController extends Controller
         $izinInstruktur = DB::table('izin_instrukturs')
             ->leftJoin('jadwal_umums', 'izin_instrukturs.jadwal_umum_id', '=', 'jadwal_umums.id')
             ->leftJoin('kelas', 'jadwal_umums.kelas_id', '=', 'kelas.id')
-            ->leftJoin('instrukturs as instrukturs_penganti', 'izin_instrukturs.instruktur_penganti_id', '=', 'instrukturs.id')
+            ->leftJoin('instrukturs as instrukturs_penganti', 'izin_instrukturs.instruktur_penganti_id', '=', 'instrukturs_penganti.id')
             ->leftJoin('instrukturs as instrukturs_pengaju', 'izin_instrukturs.instruktur_pengaju_id', '=', 'instrukturs_pengaju.id')
-            ->select('kelas.nama', 'instrukturs_penganti.nama', 'instrukturs_pengaju.nama','izin_instruturs.tanggal_izin', 'izin_instrukturs.is_confirmed')
+            ->select('kelas.nama as nama_kelas', 'instrukturs_penganti.nama as instruktur_penganti', 'instrukturs_pengaju.nama as instruktur_pengaju','izin_instrukturs.*', 'jadwal_umums.kelas_id','jadwal_umums.instruktur_id', 'jadwal_umums.hari',DB::raw("TIME_FORMAT(jadwal_umums.jam_mulai, '%H:%i') as jam_mulai"))
             ->where('izin_instrukturs.instruktur_pengaju_id', $request->user()->id)
+            ->orderBy('izin_instrukturs.created_at', 'desc')
             ->get();
         return response()->json([
             'success' => true,

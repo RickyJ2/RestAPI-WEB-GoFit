@@ -12,5 +12,7 @@ class jadwal_harian extends Model
         'jadwal_umum_id',
         'tanggal',
         'status_id',
+        'jam_mulai',
+        'jam_selesai',
     ];
 }

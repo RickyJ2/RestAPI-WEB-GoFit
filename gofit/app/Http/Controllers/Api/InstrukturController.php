@@ -57,6 +57,18 @@ class InstrukturController extends Controller
               'data' => $instruktur
          ], 200);
     }
+    //Tampil semua instruktur kecuali diri sendiri (instruktur token)
+    public function indexFiltered(Request $request){
+        $instruktur = DB::table('instrukturs')
+            ->where('id', '!=', $request->user()->id)
+            ->where('deleted_at', null)
+            ->get();
+        return response()->json([
+             'success' => true,
+             'message' => 'Daftar Instruktur',
+             'data' => $instruktur
+        ], 200);
+   }
     //Register instruktur (hanya admin)
     public function register(Request $request){
         if(!self::cekAdmin($request)){
@@ -220,17 +232,17 @@ class InstrukturController extends Controller
                 'success' => false,
                 'message' => 'Instruktur tidak ditemukan',
                 'data' => null
-            ], 400);
+            ], 401);
         }
         $validator = Validator::make($request->all(), [
-            'password' => 'required|string',
-            'password_baru' => 'required|string',
+            'password' => 'required',
+            'password_baru' => 'required',
         ]);
         if($validator->fails()){
             return response()->json([
                 'success' => false,
-                'message' => $validator->errors(),
-                'data' => null
+                'message' => "Password lama dan password baru tidak boleh kosong",
+                'data' => $validator->errors()
             ], 400);
         }
         if(Hash::check($request->password, $instruktur->password)){
@@ -252,7 +264,9 @@ class InstrukturController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Password lama salah',
-                'data' => null
+                'data' => [
+                    'password' => ['Password lama salah'],
+                ],
             ], 400);
         }
     }

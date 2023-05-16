@@ -66,28 +66,27 @@ class AuthController extends Controller
             ], 400);
         }
     
-        $user = null;
-        $role = null;
-    
         if(!is_null(member::where('username', $loginData['username'])->where('deleted_at', null)->first())){
             $user = member::where('username', $loginData['username'])->first();
-            $role = 'member';
         } else if(!is_null(instruktur::where('username', $loginData['username'])->where('deleted_at', null)->first())){
             $user = instruktur::where('username', $loginData['username'])->first();
-            $role = 'instruktur';
         } else if(!is_null(pegawai::where('username', $loginData['username'])->where('jabatan_id', 1)->first())){
             $user = pegawai::where('username', $loginData['username'])->where('jabatan_id', 1)->first();
-            $role = 'MO';
+        }else{
+            return response()->json([
+                'success' => false,
+                'message' => 'Login Gagal',
+                'data' => null
+            ], 401);
         }
     
         if(!is_null($user) && Hash::check($loginData['password'], $user->password)){
             $token = $user->createToken('authToken')->plainTextToken;
+            $tokenString = substr($token, strpos($token, '|') + 1);
             return response()->json([
                 'success' => true,
                 'message' => 'Login Berhasil',
-                'role' => $role,
-                'data' => $user,
-                'token' => $token,
+                'data' => $tokenString,
             ], 200);
         }else{
             return response()->json([
@@ -97,7 +96,41 @@ class AuthController extends Controller
             ], 401);
         }
     }
+
+    public function getUserMobile(Request $request){
+        $pegawai = pegawai::find($request->user()->id);
+        $instruktur = instruktur::find($request->user()->id);
+        $member = member::find($request->user()->id);
+        $user = null;
+        $role = null;
     
+        if(!is_null($member)){
+            $user = $member;
+            $role = 'member';
+        } else if(!is_null($instruktur)){
+            $user = $instruktur;
+            $role = 'instruktur';
+        } else if(!is_null($pegawai)){
+            $user = $pegawai;
+            $role = 'MO';
+        }
+        
+        if(!is_null($user)){
+            return response()->json([
+                'success' => true,
+                'message' => 'Berhasil mendapatkan data user',
+                'role' => $role,
+                'data' => $user,
+            ], 200);
+        }else{
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mendapatkan data user',
+                'data' => null
+            ], 401);
+        }
+    }
+
     public function logout(Request $request){
         $request->user()->tokens()->delete();
         return response()->json([

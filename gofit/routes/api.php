@@ -24,6 +24,9 @@ Route::post('loginMobile', 'App\Http\Controllers\Api\AuthController@loginMobile'
 Route::get('jadwalUmum/index', 'App\Http\Controllers\Api\JadwalUmumController@index');
 
 Route::group(['middleware' => 'auth:sanctum'], function(){
+    //getUser mobile
+    Route::get('getUserMobile', 'App\Http\Controllers\Api\AuthController@getUserMobile');
+    //logout Web dan Mobile
     Route::post('logout', 'App\Http\Controllers\Api\AuthController@logout');
 
     Route::get('pegawai/index', 'App\Http\Controllers\Api\PegawaiController@index');
@@ -59,10 +62,11 @@ Route::group(['middleware' => 'auth:sanctum'], function(){
     //reset akumulasi terlambat instruktur
     Route::get('instruktur/resetAkumulasiTerlambat', 'App\Http\Controllers\Api\resetController@resetAkumulasiTerlambat');
     //instruktur token
+    Route::get('instruktur/indexFiltered', 'App\Http\Controllers\Api\InstrukturController@indexFiltered');
     Route::put('instruktur/ubahPassword', 'App\Http\Controllers\Api\InstrukturController@ubahPassword');
     Route::get('instruktur/showProfile', 'App\Http\Controllers\Api\InstrukturController@showProfile');
     //Pegawai Manajer Operasional token
-    Route::post('pegawai/ubahPassword', 'App\Http\Controllers\Api\PegawaiController@ubahPassword');
+    Route::put('pegawai/ubahPassword', 'App\Http\Controllers\Api\PegawaiController@ubahPassword');
     
     //Tampil daftar kelas
     Route::get('kelas/index', 'App\Http\Controllers\Api\KelasController@index');
@@ -71,6 +75,9 @@ Route::group(['middleware' => 'auth:sanctum'], function(){
     Route::post('jadwalUmum/add', 'App\Http\Controllers\Api\JadwalUmumController@add');
     Route::put('jadwalUmum/update/{id}', 'App\Http\Controllers\Api\JadwalUmumController@update');
     Route::delete('jadwalUmum/{id}', 'App\Http\Controllers\Api\JadwalUmumController@delete');
+
+    //daftar Jadwal Umum hari ini
+    Route::post('jadwalUmum/getThisDay', 'App\Http\Controllers\Api\JadwalUmumController@getThisDay');
     
     //Jadwal Harian (hak akses MO)
     Route::post('jadwalHarian/libur/{id}', 'App\Http\Controllers\Api\JadwalHarianController@updateLiburJadwalHarian');
@@ -78,6 +85,8 @@ Route::group(['middleware' => 'auth:sanctum'], function(){
     Route::post('jadwalHarian/find', 'App\Http\Controllers\Api\JadwalHarianController@find');
     //Tampil Jadwal Harian + Jadwal Umum  + Kelas + Instruktur + Status
     Route::get('jadwalHarian/index', 'App\Http\Controllers\Api\JadwalHarianController@index');
+    //Tampil Jadwal Harian minggu ini dengan filter (utk member)
+    Route::get('jadwalHarian/indexThisWeek', 'App\Http\Controllers\Api\JadwalHarianController@indexThisWeek');
 
     //Izin Instruktur (MO)
     Route::get('izinInstruktur/index', 'App\Http\Controllers\Api\IzinInstrukturController@index');
@@ -85,4 +94,13 @@ Route::group(['middleware' => 'auth:sanctum'], function(){
     //Izin Instruktur (Instruktur)
     Route::post('izinInstruktur/add', 'App\Http\Controllers\Api\IzinInstrukturController@add');
     Route::get('izinInstruktur/show', 'App\Http\Controllers\Api\IzinInstrukturController@show');
+
+    //Booking Kelas
+    Route::get('bookingKelas/show', 'App\Http\Controllers\Api\BookingKelasController@show');
+    Route::post('bookingKelas/add', 'App\Http\Controllers\Api\BookingKelasController@add');
+    Route::post('bookingKelas/cancel', 'App\Http\Controllers\Api\BookingKelasController@cancel');
+
+    //Booking Gym
+    Route::post('bookingGym/add', 'App\Http\Controllers\Api\BookingGymController@add');
+    Route::put('bookingGym/cancel', 'App\Http\Controllers\Api\BookingGymController@cancel');
 });

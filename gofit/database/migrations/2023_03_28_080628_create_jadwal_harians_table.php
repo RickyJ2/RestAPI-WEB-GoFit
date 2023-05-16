@@ -16,6 +16,8 @@ return new class extends Migration
             $table->foreignId('jadwal_umum_id')->constrained('jadwal_umums')->cascadeOnUpdate()->cascadeOnDelete();
             $table->date('tanggal');
             $table->foreignId('status_id')->nullable()->default(null)->constrained('status_jadwal_harians')->cascadeOnUpdate()->cascadeOnDelete();
+            $table->timestamp('jam_mulai')->nullable()->default(null);
+            $table->timestamp('jam_selesai')->nullable()->default(null);
             $table->timestamp('created_at')->default(DB::raw('CURRENT_TIMESTAMP'));
             $table->timestamp('updated_at')->default(DB::raw('CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP'));
         });

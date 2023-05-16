@@ -37,14 +37,14 @@ class PegawaiController extends Controller
             ], 404);
         }
         $validator = Validator::make($request->all(), [
-            'password' => 'required|string',
-            'password_baru' => 'required|string',
+            'password' => 'required',
+            'password_baru' => 'required',
         ]);
         if($validator->fails()){
             return response()->json([
                 'success' => false,
-                'message' => $validator->errors(),
-                'data' => null
+                'message' => "Password dan Password Baru harus diisi",
+                'data' => $validator->errors(),
             ], 400);
         }
         if(Hash::check($request->password, $pegawai->password)){
@@ -66,7 +66,9 @@ class PegawaiController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Password lama salah',
-                'data' => null
+                'data' => [
+                    'password' => ['Password lama salah'],
+                ],
             ], 400);
         }
     }

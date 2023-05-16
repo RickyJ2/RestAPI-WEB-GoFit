@@ -204,4 +204,18 @@ class JadwalUmumController extends Controller
             'data' => $jadwalUmum
         ], 200);
     }
+    //get list jadwal umum di hari ini (Umum)
+    public function getThisDay(Request $request){
+        $jadwalUmum = DB::table('jadwal_umums')
+            ->leftJoin('kelas', 'jadwal_umums.kelas_id', '=', 'kelas.id')
+            ->where('hari', Carbon::parse($request->tanggal_izin)->format('l'))
+            ->where('instruktur_id', $request->user()->id)
+            ->select('jadwal_umums.id', 'jadwal_umums.kelas_id','jadwal_umums.instruktur_id', 'jadwal_umums.hari','kelas.nama as nama_kelas', 'kelas.harga as harga_kelas', DB::raw("TIME_FORMAT(jadwal_umums.jam_mulai, '%H:%i') as jam_mulai"))
+            ->get();
+        return response()->json([
+            'success' => true,
+            'message' => 'Daftar Jadwal Umum',
+            'data' => $jadwalUmum
+        ], 200);
+    }
 }

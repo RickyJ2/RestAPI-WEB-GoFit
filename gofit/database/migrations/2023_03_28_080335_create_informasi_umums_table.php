@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('nama');
             $table->string('alamat');
-            $table->string('deskripsi');
+            $table->text('deskripsi');
             $table->integer('biaya_aktivasi_membership');
             $table->integer('min_deposit_reguler');
             $table->integer('max_deposit_kelas_awal');

@@ -19,7 +19,7 @@ class DatabaseSeeder extends Seeder
             promo::class,
             sesi_gym::class,
             status_jadwal_harian::class,
-            dataDummy1::class,
+            dataDummy::class,
         ]);
     }
 }

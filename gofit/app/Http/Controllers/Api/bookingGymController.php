@@ -20,6 +20,18 @@ class bookingGymController extends Controller
            return true;
        }
     }
+    //cek sudah booking hari ini
+    public function cekSelfBook(Request $request){
+        $booking = bookingGym::where('member_id', $request->user()->id)
+            ->where('tgl_booking', Carbon::now()->format('Y-m-d'))
+            ->where('is_cancelled', false)
+            ->first();
+        if(is_null($booking)){
+            return false;
+        }else{
+            return true;
+        }
+    }
     //cek kuota
     public function cekKuota(Request $request){
         $booking = bookingGym::where('sesi_gym_id', $request->sesi_gym_id)
@@ -49,6 +61,13 @@ class bookingGymController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => $validator->errors(),
+                'data' => null
+            ], 400);
+        }
+        if(self::cekSelfBook($request)){
+            return response()->json([
+                'success' => false,
+                'message' => 'Anda sudah booking gym hari ini',
                 'data' => null
             ], 400);
         }
@@ -122,5 +141,14 @@ class bookingGymController extends Controller
                 'data' => null
             ], 400);
         }
+    }
+
+    public function index(){
+        $booking = bookingGym::all();
+        return response()->json([
+            'success' => true,
+            'message' => 'List booking',
+            'data' => $booking
+        ], 200);
     }
 }
