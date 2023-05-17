@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use App\Models\member;
 use App\Models\booking_gym as bookingGym;
@@ -15,15 +16,15 @@ class bookingGymController extends Controller
     public function cekMemberActivation(Request $request){
         $member = member::find($request->user()->id);
         if(is_null($member) || $member->deactived_membership_at == null){
-           return false;
-       }else{
            return true;
+        }else{
+           return false;
        }
     }
     //cek sudah booking hari ini
     public function cekSelfBook(Request $request){
         $booking = bookingGym::where('member_id', $request->user()->id)
-            ->where('tgl_booking', Carbon::now()->format('Y-m-d'))
+            ->where('tgl_booking', Carbon::parse($request->tgl_booking)->format('Y-m-d'))
             ->where('is_cancelled', false)
             ->first();
         if(is_null($booking)){
@@ -35,7 +36,7 @@ class bookingGymController extends Controller
     //cek kuota
     public function cekKuota(Request $request){
         $booking = bookingGym::where('sesi_gym_id', $request->sesi_gym_id)
-            ->where('tgl_booking', $request->tgl_booking)
+            ->where('tgl_booking', Carbon::parse($request->tgl_booking)->format('Y-m-d'))
             ->where('is_cancelled', false)
             ->count();
         if($booking >= 10){
@@ -51,7 +52,7 @@ class bookingGymController extends Controller
                 'success' => false,
                 'message' => 'Anda tidak punya akses atau belum mengaktifkan membership',
                 'data' => null
-            ], 400);
+            ], 401);
         }
         $validator = Validator::make($request->all(), [
             'sesi_gym_id' => 'required',
@@ -67,14 +68,18 @@ class bookingGymController extends Controller
         if(self::cekSelfBook($request)){
             return response()->json([
                 'success' => false,
-                'message' => 'Anda sudah booking gym hari ini',
+                'message' => [
+                    'tgl_booking' => ['Anda sudah booking gym pada tanggal ini'],
+                ],
                 'data' => null
             ], 400);
         }
         if(self::cekKuota($request)){
             return response()->json([
                 'success' => false,
-                'message' => 'Kuota sesi gym sudah penuh',
+                'message' => [
+                   'sesi_gym_id' => ['Kuota sesi gym sudah penuh'],
+            ],
                 'data' => null
             ], 400);
         }
@@ -93,12 +98,12 @@ class bookingGymController extends Controller
                 'success' => false,
                 'message' => 'Gagal booking',
                 'data' => null
-            ], 400);
+            ], 401);
         }
     }
     //membatalkan booking gym
-    public function cancel(Request $request, $id){
-        $booking = bookingGym::find($id);
+    public function cancel(Request $request){
+        $booking = bookingGym::find($request->id);
         if(is_null($booking)){
             return response()->json([
                 'success' => false,
@@ -142,9 +147,14 @@ class bookingGymController extends Controller
             ], 400);
         }
     }
-
-    public function index(){
-        $booking = bookingGym::all();
+    //booking Gym Member
+    public function show(Request $request){
+        $booking = DB::table('booking_gyms')
+            ->join('sesi_gyms', 'booking_gyms.sesi_gym_id', '=', 'sesi_gyms.id')
+            ->where('booking_gyms.member_id', $request->user()->id)
+            ->select('booking_gyms.*', 'sesi_gyms.jam_mulai', 'sesi_gyms.jam_selesai')
+            ->orderBy('booking_gyms.created_at', 'desc')
+            ->get();
         return response()->json([
             'success' => true,
             'message' => 'List booking',

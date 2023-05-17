@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('booking_gyms', function (Blueprint $table) {
             $table->id();
-            $table->string('no_nota');  
-            $table->foreign('no_nota')->nullable()->default(null)->references('id')->on('transaksis')->cascadeOnUpdate()->cascadeOnDelete();
+            $table->string('no_nota')->nullable()->default(null);  
+            $table->foreign('no_nota')->references('id')->on('transaksis')->cascadeOnUpdate()->cascadeOnDelete();
             $table->string('member_id');  
             $table->foreign('member_id')->references('id')->on('members')->cascadeOnUpdate()->cascadeOnDelete();
             $table->foreignId('sesi_gym_id')->constrained('sesi_gyms')->cascadeOnUpdate()->cascadeOnDelete();

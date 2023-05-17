@@ -87,6 +87,11 @@ Route::group(['middleware' => 'auth:sanctum'], function(){
     Route::get('jadwalHarian/index', 'App\Http\Controllers\Api\JadwalHarianController@index');
     //Tampil Jadwal Harian minggu ini dengan filter (utk member)
     Route::get('jadwalHarian/indexThisWeek', 'App\Http\Controllers\Api\JadwalHarianController@indexThisWeek');
+    //Tampil Jadwal Harian hari ini (MO)
+    Route::get('jadwalHarian/showToday', 'App\Http\Controllers\Api\JadwalHarianController@showToday');
+    //Update jam Mulai dan jam selesai jadwal harian
+    Route::put('jadwalHarian/updateJamMulai/{id}', 'App\Http\Controllers\Api\JadwalHarianController@updateJamMulai');
+    Route::put('jadwalHarian/updateJamSelesai/{id}', 'App\Http\Controllers\Api\JadwalHarianController@updateJamSelesai');
 
     //Izin Instruktur (MO)
     Route::get('izinInstruktur/index', 'App\Http\Controllers\Api\IzinInstrukturController@index');
@@ -100,7 +105,11 @@ Route::group(['middleware' => 'auth:sanctum'], function(){
     Route::post('bookingKelas/add', 'App\Http\Controllers\Api\BookingKelasController@add');
     Route::post('bookingKelas/cancel', 'App\Http\Controllers\Api\BookingKelasController@cancel');
 
+    //sesi Gym
+    Route::get('sesiGym/index', 'App\Http\Controllers\Api\SesiGymController@index');
+
     //Booking Gym
+    Route::get('bookingGym/show', 'App\Http\Controllers\Api\BookingGymController@show');
     Route::post('bookingGym/add', 'App\Http\Controllers\Api\BookingGymController@add');
-    Route::put('bookingGym/cancel', 'App\Http\Controllers\Api\BookingGymController@cancel');
+    Route::post('bookingGym/cancel', 'App\Http\Controllers\Api\BookingGymController@cancel');
 });
