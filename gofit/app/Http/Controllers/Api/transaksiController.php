@@ -12,6 +12,7 @@ use App\Models\detail_transaksi_deposit_kelas_paket as detailTransaksiDepositKel
 use App\Models\pegawai;
 use App\Models\member;
 use App\Models\promo;
+use App\Models\booking_gym as bookingGym;
 
 class transaksiController extends Controller
 {
@@ -249,5 +250,34 @@ class transaksiController extends Controller
                 'data' => null
             ], 400);
         }
+    }
+
+    //Update presensi Booking Gym
+    public function updatePresent(Request $request){
+        $booking = bookingGym::find($request->id);
+        if(is_null($booking)){
+            return response()->json([
+                'success' => false,
+                'message' => 'Booking tidak ditemukan',
+                'data' => null
+            ], 400);
+        }
+
+        $booking->present_at = Carbon::now();
+        $transaksi = self::createTransaksi($request);
+        if(is_null($transaksi)){
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal membuat transaksi',
+                'data' => null
+            ], 400);
+        }
+        $booking->no_nota = $transaksi->id;         
+        $booking->save();
+        return response()->json([
+            'success' => true,
+            'message' => 'Berhasil membatalkan booking',
+            'data' => $booking
+        ], 200);
     }
 }

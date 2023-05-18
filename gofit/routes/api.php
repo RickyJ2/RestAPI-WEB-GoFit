@@ -92,6 +92,8 @@ Route::group(['middleware' => 'auth:sanctum'], function(){
     //Update jam Mulai dan jam selesai jadwal harian
     Route::put('jadwalHarian/updateJamMulai/{id}', 'App\Http\Controllers\Api\JadwalHarianController@updateJamMulai');
     Route::put('jadwalHarian/updateJamSelesai/{id}', 'App\Http\Controllers\Api\JadwalHarianController@updateJamSelesai');
+    //Tampil Jadwal Harian hari ini untuk instruktur
+    Route::get('jadwalHarian/showTodaySchedule', 'App\Http\Controllers\Api\JadwalHarianController@showTodaySchedule');
 
     //Izin Instruktur (MO)
     Route::get('izinInstruktur/index', 'App\Http\Controllers\Api\IzinInstrukturController@index');
@@ -99,8 +101,10 @@ Route::group(['middleware' => 'auth:sanctum'], function(){
     //Izin Instruktur (Instruktur)
     Route::post('izinInstruktur/add', 'App\Http\Controllers\Api\IzinInstrukturController@add');
     Route::get('izinInstruktur/show', 'App\Http\Controllers\Api\IzinInstrukturController@show');
-
-    //Booking Kelas
+    
+    //Booking Kelas (Kasir)
+    Route::get('bookingKelas/index', 'App\Http\Controllers\Api\BookingKelasController@index');
+    //Booking Kelas (Member)
     Route::get('bookingKelas/show', 'App\Http\Controllers\Api\BookingKelasController@show');
     Route::post('bookingKelas/add', 'App\Http\Controllers\Api\BookingKelasController@add');
     Route::post('bookingKelas/cancel', 'App\Http\Controllers\Api\BookingKelasController@cancel');
@@ -108,7 +112,10 @@ Route::group(['middleware' => 'auth:sanctum'], function(){
     //sesi Gym
     Route::get('sesiGym/index', 'App\Http\Controllers\Api\SesiGymController@index');
 
-    //Booking Gym
+    //Booking Gym (Kasir)
+    Route::get('bookingGym/index', 'App\Http\Controllers\Api\BookingGymController@index');
+    Route::post('bookingGym/updatePresent', 'App\Http\Controllers\Api\TransaksiController@updatePresent');
+    //Booking Gym (Member)
     Route::get('bookingGym/show', 'App\Http\Controllers\Api\BookingGymController@show');
     Route::post('bookingGym/add', 'App\Http\Controllers\Api\BookingGymController@add');
     Route::post('bookingGym/cancel', 'App\Http\Controllers\Api\BookingGymController@cancel');

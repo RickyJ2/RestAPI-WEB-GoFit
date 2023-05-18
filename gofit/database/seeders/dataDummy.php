@@ -51,9 +51,6 @@ class dataDummy extends Seeder
      */
     public function run(): void
     {
-        $start_date = Carbon::parse('2023-01-01')->startOfWeek(Carbon::SUNDAY)->addDay();
-        $end_date = Carbon::now();
-
         //Pegawai
         DB::table('pegawais')->insert([
             [
@@ -553,6 +550,8 @@ class dataDummy extends Seeder
         }
 
         //Ajukan Izin Instruktur
+        $start_date = Carbon::parse('2023-01-01')->startOfWeek(Carbon::SUNDAY)->addDay();
+        $end_date = Carbon::now();
         $list_keterangan_izin = ['Ada jadwal mengajar di gym lain', 'Nikahan', 'Sakit', 'Capek', 'Lelah', 'Ada urusan keluarga', 'Ada urusan lain', 'Ada acara', 'Ada rapat', 'Ada tugas', 'Ada kegiatan', 'Ada acara keluarga', 'Ada acara lain', 'Ada tugas kuliah', 'Ada tugas kampus', 'Ada tugas lain', 'Ada tugas kantor'];
         for($date = $start_date; $date <= $end_date; $date->addDays(rand(3, 30))){
             $jadwalUmum = DB::table('jadwal_umums')
@@ -597,34 +596,42 @@ class dataDummy extends Seeder
                     ->update(['is_confirmed' => 2]);
             }
         }
-
-        //Jadwal Harian
-        // $start_date = Carbon::parse('2022-01-09')->startOfWeek(Carbon::SUNDAY)->addDay();
-        // $end_date = Carbon::now();
         
         $start_date = Carbon::parse('2023-01-01')->startOfWeek(Carbon::SUNDAY)->addDay();
         $end_date = Carbon::now();
         for($date = $start_date; $date->lte($end_date); $date->addDay()) {
-            $jadwalUmum = jadwalUmum::where('hari', Carbon::parse($date)->format('l'))->get();
-            for($index = 0; $index < count($jadwalUmum); $index++){
-                $jadwalHarian = new jadwalHarian;
-                $jadwalHarian->jadwal_umum_id = $jadwalUmum[$index]->id;
-                $jadwalHarian->tanggal = $date;
-                
-                $izinInstruktur = izinInstruktur::where('jadwal_umum_id', $jadwalUmum[$index]->id)
-                    ->where('tanggal_izin', $date)
-                    ->where('is_confirmed', 2)
-                    ->first();
-                if(!is_null($izinInstruktur)){
-                    $jadwalHarian->status_id = 2;
-                }
-                $jadwalHarian->save();
-
-                //liburkan beberapa jadwal harian 20% libur 80% tidak
-                $randProbLibur = rand(1,10);
-                if($randProbLibur > 8){
-                    $jadwalHarian->status_id = 1;
-                    $jadwalHarian->save();
+            //Jadwal Harian
+            if(Carbon::parse($date)->format('l') == 'Sunday'){
+                $start_dateJadwalHarian = Carbon::parse($date)->startOfWeek(Carbon::SUNDAY)->addDay();
+                $end_dateJadwalHarian =  Carbon::parse($date)->startOfWeek(Carbon::SUNDAY)->addDays(7);
+                for($dateJadwalHarian = $start_dateJadwalHarian; $dateJadwalHarian->lte($end_dateJadwalHarian); $dateJadwalHarian->addDay()) {
+                    $jadwalUmum = DB::table('jadwal_umums')
+                        ->join('instrukturs', 'jadwal_umums.instruktur_id', '=', 'instrukturs.id')
+                        ->where('jadwal_umums.hari', Carbon::parse($dateJadwalHarian)->format('l'))
+                        ->where('instrukturs.deleted_at', null)
+                        ->select('jadwal_umums.*')
+                        ->get();
+                    for($index = 0; $index < count($jadwalUmum); $index++){
+                        $jadwalHarian = new jadwalHarian;
+                        $jadwalHarian->jadwal_umum_id = $jadwalUmum[$index]->id;
+                        $jadwalHarian->tanggal = $dateJadwalHarian;
+                        
+                        $izinInstruktur = izinInstruktur::where('jadwal_umum_id', $jadwalUmum[$index]->id)
+                            ->where('tanggal_izin', $dateJadwalHarian)
+                            ->where('is_confirmed', 2)
+                            ->first();
+                        if(!is_null($izinInstruktur)){
+                            $jadwalHarian->status_id = 2;
+                        }
+                        $jadwalHarian->save();  
+                        
+                        //liburkan beberapa jadwal harian 20% libur 80% tidak
+                        $randProbLibur = rand(1,10);
+                        if($randProbLibur > 8){
+                            $jadwalHarian->status_id = 1;
+                            $jadwalHarian->save();
+                        }
+                    }
                 }
             }
         }

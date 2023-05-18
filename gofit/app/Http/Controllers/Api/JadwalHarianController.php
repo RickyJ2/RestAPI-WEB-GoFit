@@ -197,7 +197,7 @@ class JadwalHarianController extends Controller
                     ->where('izin_instrukturs.is_confirmed', 2);
             })
             ->leftJoin('instrukturs as instrukturs_penganti', 'izin_instrukturs.instruktur_penganti_id', '=', 'instrukturs_penganti.id')
-            ->select('jadwal_harians.id', 'jadwal_harians.tanggal', 'jadwal_umums.jam_mulai as jam_mulai_kelas','jadwal_umums.hari', 'kelas.nama as nama_kelas','kelas.harga as harga_kelas' ,'instrukturs.nama as nama_instruktur', DB::raw('IFNULL(status_jadwal_harians.jenis_status, "") as jenis_status'), DB::raw('IFNULL(instrukturs_penganti.nama, "") as instruktur_penganti'), DB::raw("TIME_FORMAT(jadwal_harians.jam_mulai, '%H:%i') as jam_mulai"), DB::raw("TIME_FORMAT(jadwal_harians.jam_selesai, '%H:%i') as jam_selesai"))
+            ->select('jadwal_harians.id', 'jadwal_harians.tanggal', DB::raw("TIME_FORMAT(jadwal_umums.jam_mulai, '%H:%i') as jam_mulai_kelas"),'jadwal_umums.hari', 'kelas.nama as nama_kelas','kelas.harga as harga_kelas' ,'instrukturs.nama as nama_instruktur', DB::raw('IFNULL(status_jadwal_harians.jenis_status, "") as jenis_status'), DB::raw('IFNULL(instrukturs_penganti.nama, "") as instruktur_penganti'), DB::raw("TIME_FORMAT(jadwal_harians.jam_mulai, '%H:%i') as jam_mulai"), DB::raw("TIME_FORMAT(jadwal_harians.jam_selesai, '%H:%i') as jam_selesai"))
             ->selectRaw('COUNT(CASE WHEN booking_kelas.is_cancelled = false THEN booking_kelas.jadwal_harian_id ELSE NULL END) as total_bookings')
             ->where('jadwal_harians.tanggal', '=', Carbon::now()->format('Y-m-d'))
             ->where(function($query) {
@@ -206,12 +206,7 @@ class JadwalHarianController extends Controller
             })
             ->groupBy('jadwal_harians.id', 'jadwal_harians.tanggal', 'jadwal_umums.jam_mulai', 'jadwal_umums.hari', 'kelas.nama', 'kelas.harga' ,'instrukturs.nama', 'status_jadwal_harians.jenis_status', 'instrukturs_penganti.nama', 'jadwal_harians.jam_mulai', 'jadwal_harians.jam_selesai')
             ->orderBy('jadwal_umums.jam_mulai')
-            ->get()
-            ->collect()
-            ->map(function ($item) {
-                $item->jam_mulai = date('H:i', strtotime($item->jam_mulai));
-                return $item;
-            });
+            ->get();
 
         return response()->json([
             'success' => true,
@@ -340,30 +335,73 @@ class JadwalHarianController extends Controller
                     ->where('izin_instrukturs.is_confirmed', 2);
             })
             ->leftJoin('instrukturs as instrukturs_penganti', 'izin_instrukturs.instruktur_penganti_id', '=', 'instrukturs_penganti.id')
-            ->select('jadwal_harians.id', 'jadwal_harians.tanggal', 'jadwal_umums.jam_mulai as jam_mulai_kelas','jadwal_umums.hari', 'kelas.nama as nama_kelas','kelas.harga as harga_kelas' ,'instrukturs.nama as nama_instruktur', DB::raw('IFNULL(status_jadwal_harians.jenis_status, "") as jenis_status'), DB::raw('IFNULL(instrukturs_penganti.nama, "") as instruktur_penganti'))
+            ->select('jadwal_harians.id', 'jadwal_harians.tanggal', DB::raw("TIME_FORMAT(jadwal_umums.jam_mulai, '%H:%i') as jam_mulai_kelas"),'jadwal_umums.hari', 'kelas.nama as nama_kelas','kelas.harga as harga_kelas' ,'instrukturs.nama as nama_instruktur', DB::raw('IFNULL(status_jadwal_harians.jenis_status, "") as jenis_status'), DB::raw('IFNULL(instrukturs_penganti.nama, "") as instruktur_penganti'), DB::raw("TIME_FORMAT(jadwal_harians.jam_mulai, '%H:%i') as jam_mulai"), DB::raw("TIME_FORMAT(jadwal_harians.jam_selesai, '%H:%i') as jam_selesai"))
             ->selectRaw('COUNT(CASE WHEN booking_kelas.is_cancelled = false THEN booking_kelas.jadwal_harian_id ELSE NULL END) as total_bookings')
-            ->where('jadwal_harians.tanggal' , '>=', $start_date)
-            ->where('jadwal_harians.tanggal' , '<=', $end_date)
-            ->where('jadwal_umums.jam_mulai' , '>=', $start_date->format('H:i'))
+            ->where('jadwal_harians.tanggal' , '>', $start_date->format('Y-m-d'))
+            ->where('jadwal_harians.tanggal' , '<=', $end_date->format('Y-m-d'))
+            // ->where('jadwal_umums.jam_mulai' , '>=', $start_date->format('H:i'))
             ->where(function($query) {
                 $query->where('jadwal_harians.status_id', '!=' , 1)
                       ->orWhereNull('jadwal_harians.status_id');
             })
-            ->groupBy('jadwal_harians.id', 'jadwal_harians.tanggal', 'jadwal_umums.jam_mulai', 'jadwal_umums.hari', 'kelas.nama', 'kelas.harga' ,'instrukturs.nama', 'status_jadwal_harians.jenis_status', 'instrukturs_penganti.nama')
-            ->orderBy('jadwal_harians.tanggal', 'asc')
+            ->groupBy('jadwal_harians.id', 'jadwal_harians.tanggal', 'jadwal_umums.jam_mulai', 'jadwal_umums.hari', 'kelas.nama', 'kelas.harga' ,'instrukturs.nama', 'status_jadwal_harians.jenis_status', 'instrukturs_penganti.nama', 'jadwal_harians.jam_mulai', 'jadwal_harians.jam_selesai')
+            ->orderBy('jadwal_harians.tanggal')
             ->orderBy('jadwal_umums.jam_mulai')
-            ->get()
-            ->collect()
-            ->map(function ($item) {
-                $item->jam_mulai = date('H:i', strtotime($item->jam_mulai));
-                return $item;
-            });
-
+            ->get();
             
         return response()->json([
             'success' => true,
-            'message' => 'Daftar Jadwal Harian Minggu ini ' . $start_date,
+            'message' => 'Daftar Jadwal Harian Minggu ini ' . $end_date,
             'data' => $jadwalHarian,
+        ], 200);
+    }
+    //Tampilkan jadwal harian hari ini (Hak akses Instruktur)
+    public function showTodaySchedule(Request $request){
+        $instruktur = instruktur::find($request->user()->id);
+        if(is_null($instruktur)){
+            return response()->json([
+                'success' => false,
+                'message' => 'Anda tidak punya akses',
+                'data' => null
+            ], 401);
+        }
+        $jadwalHarian = DB::table('jadwal_harians')
+            ->join('jadwal_umums', 'jadwal_harians.jadwal_umum_id', '=', 'jadwal_umums.id')
+            ->join('kelas', 'jadwal_umums.kelas_id', '=', 'kelas.id')
+            ->join('instrukturs', 'jadwal_umums.instruktur_id', '=', 'instrukturs.id')
+            ->leftJoin('booking_kelas', 'booking_kelas.jadwal_harian_id', '=', 'jadwal_harians.id')
+            ->leftJoin('status_jadwal_harians', 'jadwal_harians.status_id', '=', 'status_jadwal_harians.id')
+            ->leftJoin('izin_instrukturs', function ($join) {
+                $join->on('jadwal_umums.id', '=', 'izin_instrukturs.jadwal_umum_id')
+                    ->on('jadwal_harians.tanggal', '=', 'izin_instrukturs.tanggal_izin')
+                    ->where('izin_instrukturs.is_confirmed', 2);
+            })
+            ->leftJoin('instrukturs as instrukturs_penganti', 'izin_instrukturs.instruktur_penganti_id', '=', 'instrukturs_penganti.id')
+            ->select('jadwal_harians.id', 'jadwal_harians.tanggal', DB::raw("TIME_FORMAT(jadwal_umums.jam_mulai, '%H:%i') as jam_mulai_kelas"),'jadwal_umums.hari', 'kelas.nama as nama_kelas','kelas.harga as harga_kelas' ,'instrukturs.nama as nama_instruktur', DB::raw('IFNULL(status_jadwal_harians.jenis_status, "") as jenis_status'), DB::raw('IFNULL(instrukturs_penganti.nama, "") as instruktur_penganti'), DB::raw("TIME_FORMAT(jadwal_harians.jam_mulai, '%H:%i') as jam_mulai"), DB::raw("TIME_FORMAT(jadwal_harians.jam_selesai, '%H:%i') as jam_selesai"))
+            ->selectRaw('COUNT(CASE WHEN booking_kelas.is_cancelled = false THEN booking_kelas.jadwal_harian_id ELSE NULL END) as total_bookings')
+            ->where('jadwal_harians.tanggal', '=', Carbon::now()->format('Y-m-d'))
+            ->where(function($query) {
+                $query->where('jadwal_harians.status_id', '!=' , 1)
+                      ->orWhereNull('jadwal_harians.status_id');
+            })
+            ->where(function($query) use ($request) {
+                $query->where(function($q) use ($request) {
+                        $q->where('jadwal_harians.status_id', 2)
+                          ->where('izin_instrukturs.instruktur_penganti_id', $request->user()->id);
+                    })
+                    ->orWhere(function($q) use ($request) {
+                        $q->where('jadwal_harians.status_id', null)
+                          ->where('jadwal_umums.instruktur_id', $request->user()->id);
+                    });
+            })
+            ->groupBy('jadwal_harians.id', 'jadwal_harians.tanggal', 'jadwal_umums.jam_mulai', 'jadwal_umums.hari', 'kelas.nama', 'kelas.harga' ,'instrukturs.nama', 'status_jadwal_harians.jenis_status', 'instrukturs_penganti.nama', 'jadwal_harians.jam_mulai', 'jadwal_harians.jam_selesai')
+            ->orderBy('jadwal_umums.jam_mulai')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Daftar Jadwal harian hari ini',
+            'data' => $jadwalHarian
         ], 200);
     }
 }

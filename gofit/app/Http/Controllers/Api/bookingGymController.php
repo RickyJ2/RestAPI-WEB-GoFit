@@ -147,12 +147,26 @@ class bookingGymController extends Controller
             ], 400);
         }
     }
+    //booking Gym (Kasir)
+    public function index(Request $request){
+        $booking = DB::table('booking_gyms')
+            ->join('sesi_gyms', 'booking_gyms.sesi_gym_id', '=', 'sesi_gyms.id')
+            ->join('members', 'booking_gyms.member_id', '=', 'members.id')
+            ->select('booking_gyms.*', 'members.nama as member_nama' , DB::raw("TIME_FORMAT(sesi_gyms.jam_mulai, '%H:%i') as jam_mulai"),DB::raw("TIME_FORMAT(sesi_gyms.jam_selesai, '%H:%i') as jam_selesai"))
+            ->orderBy('booking_gyms.created_at', 'desc')
+            ->get();
+        return response()->json([
+            'success' => true,
+            'message' => 'List booking',
+            'data' => $booking
+        ], 200);
+    }
     //booking Gym Member
     public function show(Request $request){
         $booking = DB::table('booking_gyms')
             ->join('sesi_gyms', 'booking_gyms.sesi_gym_id', '=', 'sesi_gyms.id')
             ->where('booking_gyms.member_id', $request->user()->id)
-            ->select('booking_gyms.*', 'sesi_gyms.jam_mulai', 'sesi_gyms.jam_selesai')
+            ->select('booking_gyms.*', DB::raw("TIME_FORMAT(sesi_gyms.jam_mulai, '%H:%i') as jam_mulai"),DB::raw("TIME_FORMAT(sesi_gyms.jam_selesai, '%H:%i') as jam_selesai"))
             ->orderBy('booking_gyms.created_at', 'desc')
             ->get();
         return response()->json([

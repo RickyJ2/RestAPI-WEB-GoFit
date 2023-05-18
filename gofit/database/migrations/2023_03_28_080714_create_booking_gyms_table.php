@@ -19,7 +19,7 @@ return new class extends Migration
             $table->foreign('member_id')->references('id')->on('members')->cascadeOnUpdate()->cascadeOnDelete();
             $table->foreignId('sesi_gym_id')->constrained('sesi_gyms')->cascadeOnUpdate()->cascadeOnDelete();
             $table->date('tgl_booking');
-            $table->boolean('is_present')->default(false);
+            $table->timestamp('present_at')->nullable()->default(null);
             $table->boolean('is_cancelled')->default(false);
             $table->timestamp('created_at')->default(DB::raw('CURRENT_TIMESTAMP'));
             $table->timestamp('updated_at')->default(DB::raw('CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP'));

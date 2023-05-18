@@ -155,7 +155,7 @@ class bookingKelasController extends Controller
     }
     //index booking (hak akses kasir)
     public function index(Request $request){
-        if(self::cekKasir($request)){
+        if(!self::cekKasir($request)){
             return response()->json([
                 'success' => false,
                 'message' => 'Anda tidak punya akses',
@@ -167,19 +167,36 @@ class bookingKelasController extends Controller
                 ->join('jadwal_umums', 'jadwal_umums.id', '=', 'jadwal_harians.jadwal_umum_id')
                 ->join('kelas', 'kelas.id', '=', 'jadwal_umums.kelas_id')
                 ->join('instrukturs', 'jadwal_umums.instruktur_id', '=', 'instrukturs.id')
+                ->join('members', 'members.id', '=', 'booking_kelas.member_id')
                 ->leftJoin('status_jadwal_harians', 'jadwal_harians.status_id', '=', 'status_jadwal_harians.id')
+                ->leftjoin('jenis_transaksis', 'jenis_transaksis.id',  '=', 'booking_kelas.jenis_pembayaran_id')
                 ->leftJoin('izin_instrukturs', function ($join) {
                     $join->on('jadwal_umums.id', '=', 'izin_instrukturs.jadwal_umum_id')
-                        ->where('izin_instrukturs.is_active', '=', true);
+                        ->on('jadwal_harians.tanggal', '=', 'izin_instrukturs.tanggal_izin')
+                        ->where('izin_instrukturs.is_confirmed', 2);
                 })
-                ->select('booking_kelas.*', 'jadwal_harians.tanggal', 'jadwal_harians.waktu', 'kelas.nama as kelas', 'instrukturs.nama as instruktur', 'status_jadwal_harians.nama as status', 'izin_instrukturs.is_active as izin')
-                
-                ->orderBy('jadwal_harians.tanggal', 'desc')
-                ->orderBy('jadwal_harians.waktu', 'desc')
+                ->leftJoin('instrukturs as instrukturs_penganti', 'izin_instrukturs.instruktur_penganti_id', '=', 'instrukturs_penganti.id')
+                ->select('booking_kelas.*', 'jadwal_harians.tanggal','members.nama as nama_member', 'jenis_transaksis.nama as jenis_pembayaran' ,DB::raw("TIME_FORMAT(jadwal_umums.jam_mulai, '%H:%i') as jam_mulai"),'jadwal_umums.hari', 'kelas.nama as nama_kelas','kelas.harga as harga_kelas' ,'instrukturs.nama as nama_instruktur', DB::raw('IFNULL(status_jadwal_harians.jenis_status, "") as jenis_status'), DB::raw('IFNULL(instrukturs_penganti.nama, "") as instruktur_penganti'))
+                ->orderBy('booking_kelas.created_at', 'desc')
                 ->get();
         return response()->json([
             'success' => true,
             'message' => 'List Semua Booking Kelas',
+            'data'    => $bookingKelas  
+        ], 200);
+    }
+
+    //Daftar Booking Jadwal Harian
+    public function getListMember(Request $request){
+        $bookingKelas = DB::table('booking_kelas')
+                ->join('members', 'members.id', '=', 'booking_kelas.member_id')
+                ->where('booking_kelas.jadwal_harian_id', $request->jadwal_harian_id)
+                ->select('booking_kelas.*', 'members.nama as nama_member')
+                ->orderBy('members.nama', 'desc')
+                ->get();
+        return response()->json([
+            'success' => true,
+            'message' => 'List Semua Member Booking Kelas',
             'data'    => $bookingKelas  
         ], 200);
     }
