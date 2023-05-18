@@ -186,11 +186,11 @@ class bookingKelasController extends Controller
         ], 200);
     }
 
-    //Daftar Booking Jadwal Harian
-    public function getListMember(Request $request){
+    //Daftar Member Booking Jadwal Harian
+    public function getListMember($id){
         $bookingKelas = DB::table('booking_kelas')
                 ->join('members', 'members.id', '=', 'booking_kelas.member_id')
-                ->where('booking_kelas.jadwal_harian_id', $request->jadwal_harian_id)
+                ->where('booking_kelas.jadwal_harian_id', $id)
                 ->select('booking_kelas.*', 'members.nama as nama_member')
                 ->orderBy('members.nama', 'desc')
                 ->get();

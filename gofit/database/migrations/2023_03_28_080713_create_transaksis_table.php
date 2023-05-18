@@ -31,7 +31,7 @@ return new class extends Migration
 
         Schema::create('transaksis', function (Blueprint $table) {
             $table->string('id')->unique()->primary();
-            $table->string('pegawai_id');
+            $table->string('pegawai_id')->nullable()->default(null);
             $table->foreign('pegawai_id')->references('id')->on('pegawais')->cascadeOnUpdate()->cascadeOnDelete(); 
             $table->string('member_id');  
             $table->foreign('member_id')->references('id')->on('members')->cascadeOnUpdate()->cascadeOnDelete();

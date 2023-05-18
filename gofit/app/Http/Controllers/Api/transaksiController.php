@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 use App\Models\transaksi;
 use App\Models\detail_transaksi_deposit_reguler as detailTransaksiDepositReguler;
@@ -13,6 +14,10 @@ use App\Models\pegawai;
 use App\Models\member;
 use App\Models\promo;
 use App\Models\booking_gym as bookingGym;
+use App\Models\booking_kelas as bookingKelas;
+use App\Models\jadwal_harian as jadwalHarian;
+use App\Models\jadwal_umum as jadwalUmum;
+use App\Models\kelas;
 
 class transaksiController extends Controller
 {
@@ -276,8 +281,71 @@ class transaksiController extends Controller
         $booking->save();
         return response()->json([
             'success' => true,
-            'message' => 'Berhasil membatalkan booking',
+            'message' => 'Berhasil mempresensi booking',
             'data' => $booking
+        ], 200);
+    }
+
+    //Update presensi Booking Kelas
+    public function updatePresentKelas(Request $request){
+        $requestData = $request->all();
+        foreach ($requestData as $key => $value) {
+            $bookingKelas = bookingKelas::find($key);
+            $member = member::find($bookingKelas->member_id);
+            
+            if($value == '1' && is_null($bookingKelas->present_at)){
+                $bookingKelas->present_at = Carbon::now();
+                $bookingKelas->save();
+            }
+            if(is_null($bookingKelas->no_nota)){
+                $transaksi = new Transaksi;
+                $transaksi->member_id = $member->id;
+                $transaksi->jenis_transaksi_id = 5;
+                $transaksi->save();
+                
+                $transaksi = Transaksi::where('member_id', $member->id)
+                    ->where('jenis_transaksi_id', 5)
+                    ->where('created_at', $transaksi->created_at)
+                    ->where('updated_at', $transaksi->updated_at)
+                    ->first();
+                if(is_null($transaksi)){
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Gagal membuat transaksi',
+                        'data' => null
+                    ], 400);
+                }
+                $bookingKelas->no_nota = $transaksi->id;
+                $bookingKelas->save();
+
+                //Motong deposit Member
+                $jadwalHarian = jadwalHarian::find($bookingKelas->jadwal_harian_id);
+                $jadwalUmum = jadwalUmum::find($jadwalHarian->jadwal_umum_id);
+                $kelas = kelas::find($jadwalUmum->kelas_id);
+                //kalau deposit kelas memmber sama dengan kelas
+                if($member->kelas_deposit_kelas_paket_id == $kelas->id && $member->deposit_kelas_paket > 0){
+                    $member->deposit_kelas_paket --;
+                    $member->save();
+                    //update utk struk
+                    $bookingKelas->jenis_pembayaran_id = 3;
+                    $bookingKelas->sisa_deposit = $member->deposit_kelas_paket;
+                    $bookingKelas->masa_berlaku_deposit = $member->deactived_deposit_kelas_paket;
+                    $bookingKelas->save();
+            
+                }else{
+                    $member->deposit_reguler -= $kelas->harga;
+                    $member->save();
+                    //update utk struk
+                    $bookingKelas->jenis_pembayaran_id = 2;
+                    $bookingKelas->sisa_deposit = $member->deposit_reguler;
+                    $bookingKelas->save();
+                }
+            }
+        }
+        return response()->json([
+            'success' => true,
+            'message' => 'Berhasil mempresensi booking',
+            'data' => null,
         ], 200);
     }
 }

@@ -104,10 +104,14 @@ Route::group(['middleware' => 'auth:sanctum'], function(){
     
     //Booking Kelas (Kasir)
     Route::get('bookingKelas/index', 'App\Http\Controllers\Api\BookingKelasController@index');
+    //List member booking kelas (Instruktur)
+    Route::get('bookingKelas/getListMember/{id}', 'App\Http\Controllers\Api\BookingKelasController@getListMember');
     //Booking Kelas (Member)
     Route::get('bookingKelas/show', 'App\Http\Controllers\Api\BookingKelasController@show');
     Route::post('bookingKelas/add', 'App\Http\Controllers\Api\BookingKelasController@add');
     Route::post('bookingKelas/cancel', 'App\Http\Controllers\Api\BookingKelasController@cancel');
+    //Presensi Booking Kelas (Instruktur)
+    Route::post('bookingKelas/updatePresent', 'App\Http\Controllers\Api\TransaksiController@updatePresentKelas');
 
     //sesi Gym
     Route::get('sesiGym/index', 'App\Http\Controllers\Api\SesiGymController@index');
