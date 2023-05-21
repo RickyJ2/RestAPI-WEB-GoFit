@@ -18,7 +18,16 @@ return new class extends Migration
             BEGIN
                 DECLARE year_prefix VARCHAR(2);
                 DECLARE month_prefix VARCHAR(2);
-                SET @next_id = (SELECT IFNULL(MAX(RIGHT(id, LOCATE('.', REVERSE(id)) - 1)), 0) + 1 FROM transaksis);
+                SET @next_id = (SELECT IFNULL(
+                    MAX(
+                        CAST(
+                            RIGHT(id, LOCATE(
+                                '.', REVERSE(id)
+                            ) 
+                                  - 1)AS UNSIGNED
+                        ) 
+                    ), 0
+                ) + 1 FROM transaksis);
                 SET year_prefix = DATE_FORMAT(NEW.created_at, '%y');
                 SET month_prefix = DATE_FORMAT(NEW.created_at, '%m');
                 IF( @next_id < 10 ) THEN

@@ -248,9 +248,11 @@ class JadwalHarianController extends Controller
             $instruktur = Instruktur::find($izinInstruktur->instruktur_penganti_id);
         }
 
-        $instruktur->akumulasi_terlambat += Carbon::parse($jadwalHarian->jam_mulai)->diffInMinutes(Carbon::parse($jadwalUmum->jam_mulai));
-        $instruktur->save();
-
+        if(Carbon::parse($jadwalHarian->jam_mulai)->gt(Carbon::parse($jadwalUmum->jam_mulai))){
+            $instruktur->akumulasi_terlambat += Carbon::parse($jadwalHarian->jam_mulai)->diffInMinutes(Carbon::parse($jadwalUmum->jam_mulai));
+            $instruktur->save();
+        }
+       
         return response()->json([
             'success' => true,
             'message' => 'Jam mulai berhasil diubah',

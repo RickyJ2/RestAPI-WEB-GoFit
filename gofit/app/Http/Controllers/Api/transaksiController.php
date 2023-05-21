@@ -324,7 +324,7 @@ class transaksiController extends Controller
                 $kelas = kelas::find($jadwalUmum->kelas_id);
                 //kalau deposit kelas memmber sama dengan kelas
                 if($member->kelas_deposit_kelas_paket_id == $kelas->id && $member->deposit_kelas_paket > 0){
-                    $member->deposit_kelas_paket --;
+                    $member->deposit_kelas_paket = $member->deposit_kelas_paket - 1;
                     $member->save();
                     //update utk struk
                     $bookingKelas->jenis_pembayaran_id = 3;
