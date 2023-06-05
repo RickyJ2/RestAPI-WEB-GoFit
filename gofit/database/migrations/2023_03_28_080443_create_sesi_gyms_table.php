@@ -3,7 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
@@ -17,8 +17,28 @@ return new class extends Migration
             $table->time('jam_mulai');
             $table->time('jam_selesai');
         });
-        Artisan::call('db:seed', [
-            '--class' => \Database\Seeders\sesi_gym::class,
+        DB::table('sesi_gyms')->insert([[
+            'jam_mulai' => '07:00',
+            'jam_selesai' => '09:00',
+        ],[
+            'jam_mulai' => '09:00',
+            'jam_selesai' => '11:00',
+        ],[
+            'jam_mulai' => '11:00',
+            'jam_selesai' => '13:00',
+        ],[
+            'jam_mulai' => '13:00',
+            'jam_selesai' => '15:00',
+        ],[
+            'jam_mulai' => '15:00',
+            'jam_selesai' => '17:00',
+        ],[
+            'jam_mulai' => '17:00',
+            'jam_selesai' => '19:00',
+        ],[
+            'jam_mulai' => '19:00',
+            'jam_selesai' => '21:00',
+        ],
         ]);
     }
 

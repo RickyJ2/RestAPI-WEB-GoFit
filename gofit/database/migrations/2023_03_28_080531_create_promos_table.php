@@ -3,7 +3,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Facades\Artisan;
 
 return new class extends Migration
 {
@@ -22,8 +21,22 @@ return new class extends Migration
             $table->timestamp('created_at')->default(DB::raw('CURRENT_TIMESTAMP'));
             $table->timestamp('updated_at')->default(DB::raw('CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP'));
         });
-        Artisan::call('db:seed', [
-            '--class' => \Database\Seeders\promo::class,
+        DB::table('promos')->insert([[
+            'jenis_promo_id' => 2,
+            'kriteria_pembelian' => 3000000,
+            'bonus' => 300000,
+            'masa_berlaku' => null,
+        ],[
+            'jenis_promo_id' => 3,
+            'kriteria_pembelian' => 5,
+            'bonus' => 1,
+            'masa_berlaku' => 1,
+        ],[
+            'jenis_promo_id' => 3,
+            'kriteria_pembelian' => 10,
+            'bonus' => 3,
+            'masa_berlaku' => 2,
+        ],
         ]);
     }
 

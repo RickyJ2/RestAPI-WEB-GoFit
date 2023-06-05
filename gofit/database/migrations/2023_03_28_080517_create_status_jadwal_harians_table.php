@@ -3,7 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
@@ -16,8 +16,11 @@ return new class extends Migration
             $table->id();
             $table->String('jenis_status');
         });
-        Artisan::call('db:seed', [
-            '--class' => \Database\Seeders\status_jadwal_harian::class,
+        DB::table('status_jadwal_harians')->insert([[
+            'jenis_status' => 'libur',
+        ],[
+            'jenis_status' => 'menggantikan',
+        ],
         ]);
     }
 
