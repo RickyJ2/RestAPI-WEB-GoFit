@@ -647,9 +647,9 @@ class dataDummy extends Seeder
             $member->deposit_kelas_paket += $detailTransaksi->nominal;
             $member->kelas_deposit_kelas_paket_id = $detailTransaksi->kelas_id;
             if($detailTransaksi->nominal < 10){
-                $member->deactived_deposit_kelas_paket = Carbon::parse($transaksi->created_at)->addMonth();
+                $member->deactived_deposit_kelas_paket = Carbon::parse($transaksi->created_at->copy())->addMonth();
             }else{
-                $member->deactived_deposit_kelas_paket = Carbon::parse($transaksi->created_at)->addMonths(2);
+                $member->deactived_deposit_kelas_paket = Carbon::parse($transaksi->created_at->copy())->addMonths(2);
             }
             if($detailTransaksi->nominal >= 10){
                 $member->deposit_kelas_paket += 3;
@@ -663,7 +663,7 @@ class dataDummy extends Seeder
         }
 
         //Ajukan Izin Instruktur
-        $start_date = Carbon::parse('2022-01-10')->startOfWeek(Carbon::SUNDAY)->addDay();
+        $start_date = Carbon::parse('2022-06-10')->startOfWeek(Carbon::SUNDAY)->addDay();
         $end_date = Carbon::now();
         $list_keterangan_izin = ['Ada jadwal mengajar di gym lain', 'Nikahan', 'Sakit', 'Capek', 'Lelah', 'Ada urusan keluarga', 'Ada urusan lain', 'Ada acara', 'Ada rapat', 'Ada tugas', 'Ada kegiatan', 'Ada acara keluarga', 'Ada acara lain', 'Ada tugas kuliah', 'Ada tugas kampus', 'Ada tugas lain', 'Ada tugas kantor'];
         for($date = $start_date; $date <= $end_date; $date->addDays(rand(3, 30))){
@@ -698,11 +698,11 @@ class dataDummy extends Seeder
                 'tanggal_izin' => $date,
                 'keterangan' => $list_keterangan_izin[rand(0, count($list_keterangan_izin) - 1)],
                 'is_confirmed' => $randConfirmed,
-                'created_at' => $date->setTime(rand(8, 20), rand(0, 59), rand(0, 59)),
+                'created_at' => $date->copy()->setTime(rand(8, 20), rand(0, 59), rand(0, 59)),
             ]);
         }
         
-        $start_date = Carbon::parse('2022-01-10')->startOfWeek(Carbon::SUNDAY)->addDay();
+        $start_date = Carbon::parse('2022-06-10')->startOfWeek(Carbon::SUNDAY)->addDay();
         $end_date = Carbon::now();
         for($date = $start_date; $date->lte($end_date); $date->addDay()) {
             //deactive membership yg kadarluasa & tambah transaksi aktivasi
@@ -721,7 +721,7 @@ class dataDummy extends Seeder
                 ]);
                 DB::table('members')
                     ->where('id', $m->id)
-                    ->update(['deactived_membership_at' => $activedDate->addYear()]);
+                    ->update(['deactived_membership_at' => $activedDate->copy()->addYear()]);
             }
             //deactive paket kelas yang kadarluasa && tambah transaksi deposit kelas paket
             $member = Member::where('deactived_deposit_kelas_paket', '<', $date)
@@ -741,6 +741,7 @@ class dataDummy extends Seeder
                     ->where('id', $detailTransaksi->kelas_id)
                     ->first();
                 $detailTransaksi->total = $detailTransaksi->nominal * $kelas->harga;
+                $detailTransaksi->created_at = Carbon::parse($transaksi->created_at->copy());
                 
                 $m->deposit_kelas_paket += $detailTransaksi->nominal;
                 $m->kelas_deposit_kelas_paket_id = $detailTransaksi->kelas_id;
@@ -767,6 +768,7 @@ class dataDummy extends Seeder
                 $detailTransaksi = new detailTransaksiDepositReguler;
                 $detailTransaksi->no_nota = $transaksi->id;       
                 $detailTransaksi->nominal = self::generateDepositReguler();
+                $detailTransaksi->created_at = Carbon::parse($transaksi->created_at->copy());
 
                 $m->deposit_reguler += $detailTransaksi->nominal;
                 if($detailTransaksi->nominal >= 3000000){
@@ -787,8 +789,8 @@ class dataDummy extends Seeder
             }
             //Jadwal Harian
             if(Carbon::parse($date)->format('l') == 'Sunday'){
-                $start_dateJadwalHarian = Carbon::parse($date)->startOfWeek(Carbon::SUNDAY)->addDay();
-                $end_dateJadwalHarian =  Carbon::parse($date)->startOfWeek(Carbon::SUNDAY)->addDays(7);
+                $start_dateJadwalHarian = Carbon::parse($date->copy())->startOfWeek(Carbon::SUNDAY)->addDay();
+                $end_dateJadwalHarian =  Carbon::parse($date->copy())->startOfWeek(Carbon::SUNDAY)->addDays(7);
                 for($dateJadwalHarian = $start_dateJadwalHarian; $dateJadwalHarian->lte($end_dateJadwalHarian); $dateJadwalHarian->addDay()) {
                     $jadwalUmum = DB::table('jadwal_umums')
                         ->join('instrukturs', 'jadwal_umums.instruktur_id', '=', 'instrukturs.id')
@@ -799,7 +801,7 @@ class dataDummy extends Seeder
                     for($index = 0; $index < count($jadwalUmum); $index++){
                         $jadwalHarian = new jadwalHarian;
                         $jadwalHarian->jadwal_umum_id = $jadwalUmum[$index]->id;
-                        $jadwalHarian->tanggal = $dateJadwalHarian;
+                        $jadwalHarian->tanggal = $dateJadwalHarian->copy();
                         
                         $izinInstruktur = izinInstruktur::where('jadwal_umum_id', $jadwalUmum[$index]->id)
                             ->where('tanggal_izin', $dateJadwalHarian)
@@ -822,14 +824,16 @@ class dataDummy extends Seeder
                             }
                             //update jam mulai kelas
                             list($hour, $minute) = explode(":", $jadwalUmum[$index]->jam_mulai);
-                            $jadwalHarian->jam_mulai = Carbon::parse($dateJadwalHarian)->setTime($hour, $minute, rand(0, 59))->subMinutes(rand(-15, 30));
+                            $jadwalHarian->jam_mulai = Carbon::parse($dateJadwalHarian->copy())->setTime($hour, $minute, rand(0, 59))->subMinutes(rand(-15, 30));
                             //update akumulasi terlambat instruktur
                             if(Carbon::parse($jadwalHarian->jam_mulai)->gt(Carbon::parse($jadwalUmum[$index]->jam_mulai))){
+                                $jadwalHarian->akumulasi_terlambat = Carbon::parse($jadwalHarian->jam_mulai)->diffInMinutes(Carbon::parse($jadwalUmum[$index]->jam_mulai));
                                 $instruktur->akumulasi_terlambat += Carbon::parse($jadwalHarian->jam_mulai)->diffInMinutes(Carbon::parse($jadwalUmum[$index]->jam_mulai));
                                 $instruktur->save();
                             }
                             //update jam selesai
-                            $jadwalHarian->jam_selesai = $jadwalHarian->jam_mulai->addHour();
+                            $endTime = $jadwalHarian->jam_mulai->copy();
+                            $jadwalHarian->jam_selesai = $endTime->copy()->addHour();
                         }
                         $jadwalHarian->save();
                     }
@@ -847,14 +851,14 @@ class dataDummy extends Seeder
                     $bookingGym->member_id = $member->id;
                     $bookingGym->tgl_booking = $date;
                     $bookingGym->sesi_gym_id = $sesiGym;
-                    $bookingGym->created_at = Carbon::parse($date)->subDays(rand(1,3))->setTime(rand(8, 20), rand(0, 59), rand(0, 59));
+                    $bookingGym->created_at = Carbon::parse($date->copy())->subDays(rand(1,3))->setTime(rand(8, 20), rand(0, 59), rand(0, 59));
                      //random 80% hadir 20% tidak hadir
                     $randConfirmed = rand(1, 10);
                     if($randConfirmed < 9) {
                         $sesiGymData = sesiGym::find($sesiGym);
                         list($hour, $minute) = explode(":", $sesiGymData->jam_mulai);
-                        $bookingGym->present_at = Carbon::parse($date)->setTime($hour, $minute, rand(0, 59))->subMinutes(rand(0, 30));
-                        $transaksi = self::createTransaksi($member->id, 4, $bookingGym->present_at);
+                        $bookingGym->present_at = Carbon::parse($date->copy())->setTime($hour, $minute, rand(0, 59))->subMinutes(rand(0, 30));
+                        $transaksi = self::createTransaksi($member->id, 4, $bookingGym->present_at->copy());
                         $bookingGym->no_nota = $transaksi->id;
                     }
                     $bookingGym->save();
@@ -873,21 +877,21 @@ class dataDummy extends Seeder
                 if(count($idMember) <= 10) $randBook = count($idMember);
                 else
                     $randBook = rand(1,10);
-                $presentAt = Carbon::parse($date)->setTime($j->jam_mulai, rand(0, 59))->subMinutes(rand(0, 30));
+                $presentAt = Carbon::parse($date->copy())->setTime($j->jam_mulai, rand(0, 59))->subMinutes(rand(0, 30));
                 for($index = 0; $index < $randBook; $index++){
                     $member = Member::where('username', $namaMember[$idMember[$index]])
                         ->first();
                     $bookingKelas = new bookingKelas;
                     $bookingKelas->member_id = $member->id;
                     $bookingKelas->jadwal_harian_id = $j->id;
-                    $bookingKelas->created_at = Carbon::parse($date)->subDays(rand(1,3))->setTime(rand(8, 20), rand(0, 59), rand(0, 59));
+                    $bookingKelas->created_at = Carbon::parse($date->copy())->subDays(rand(1,3))->setTime(rand(8, 20), rand(0, 59), rand(0, 59));
                     //random 80% hadir 20% tidak hadir
                     $randConfirmed = rand(1, 10);
                     if($randConfirmed < 9) {
-                        $bookingKelas->present_at = $presentAt;   
+                        $bookingKelas->present_at = $presentAt->copy();   
                     }
                     //potong deposit
-                    $transaksi = self::createTransaksi($member->id, 5, $presentAt);
+                    $transaksi = self::createTransaksi($member->id, 5, $presentAt->copy());
                     $bookingKelas->no_nota = $transaksi->id;
                     $jadwalUmum = jadwalUmum::find($j->jadwal_umum_id);
                     $kelas = kelas::find($jadwalUmum->kelas_id);

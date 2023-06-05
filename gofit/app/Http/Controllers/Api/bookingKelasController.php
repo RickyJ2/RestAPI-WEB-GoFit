@@ -203,12 +203,14 @@ class bookingKelasController extends Controller
 
     //index booking member 
     public function show(Request $request){
+        
         $bookingKelas = DB::table('booking_kelas')
                 ->join('jadwal_harians', 'jadwal_harians.id', '=', 'booking_kelas.jadwal_harian_id')
                 ->join('jadwal_umums', 'jadwal_umums.id', '=', 'jadwal_harians.jadwal_umum_id')
                 ->join('kelas', 'kelas.id', '=', 'jadwal_umums.kelas_id')
                 ->join('instrukturs', 'jadwal_umums.instruktur_id', '=', 'instrukturs.id')
                 ->leftJoin('status_jadwal_harians', 'jadwal_harians.status_id', '=', 'status_jadwal_harians.id')
+                ->leftjoin('jenis_transaksis', 'jenis_transaksis.id',  '=', 'booking_kelas.jenis_pembayaran_id')
                 ->leftJoin('izin_instrukturs', function ($join) {
                     $join->on('jadwal_umums.id', '=', 'izin_instrukturs.jadwal_umum_id')
                         ->on('jadwal_harians.tanggal', '=', 'izin_instrukturs.tanggal_izin')
@@ -216,7 +218,35 @@ class bookingKelasController extends Controller
                 })
                 ->leftJoin('instrukturs as instrukturs_penganti', 'izin_instrukturs.instruktur_penganti_id', '=', 'instrukturs_penganti.id')
                 ->where('member_id', $request->user()->id)
-                ->select('booking_kelas.*', 'jadwal_harians.tanggal', DB::raw("TIME_FORMAT(jadwal_umums.jam_mulai, '%H:%i') as jam_mulai"),'jadwal_umums.hari', 'kelas.nama as nama_kelas','kelas.harga as harga_kelas' ,'instrukturs.nama as nama_instruktur', DB::raw('IFNULL(status_jadwal_harians.jenis_status, "") as jenis_status'), DB::raw('IFNULL(instrukturs_penganti.nama, "") as instruktur_penganti'))
+                ->select('booking_kelas.*', 'jadwal_harians.tanggal','jenis_transaksis.nama as jenis_pembayaran', DB::raw("TIME_FORMAT(jadwal_umums.jam_mulai, '%H:%i') as jam_mulai"),'jadwal_umums.hari', 'kelas.nama as nama_kelas','kelas.harga as harga_kelas' ,'instrukturs.nama as nama_instruktur', DB::raw('IFNULL(status_jadwal_harians.jenis_status, "") as jenis_status'), DB::raw('IFNULL(instrukturs_penganti.nama, "") as instruktur_penganti'))
+                ->orderBy('booking_kelas.created_at', 'desc')
+                ->take(10)
+                ->get();
+        return response()->json([
+            'success' => true,
+            'message' => 'List booking kelas member',
+            'data' => $bookingKelas
+        ], 200);
+    }
+    //index booking member filter
+    public function showFilter(Request $request){
+        $bookingKelas = DB::table('booking_kelas')
+                ->join('jadwal_harians', 'jadwal_harians.id', '=', 'booking_kelas.jadwal_harian_id')
+                ->join('jadwal_umums', 'jadwal_umums.id', '=', 'jadwal_harians.jadwal_umum_id')
+                ->join('kelas', 'kelas.id', '=', 'jadwal_umums.kelas_id')
+                ->join('instrukturs', 'jadwal_umums.instruktur_id', '=', 'instrukturs.id')
+                ->leftJoin('status_jadwal_harians', 'jadwal_harians.status_id', '=', 'status_jadwal_harians.id')
+                ->leftjoin('jenis_transaksis', 'jenis_transaksis.id',  '=', 'booking_kelas.jenis_pembayaran_id')
+                ->leftJoin('izin_instrukturs', function ($join) {
+                    $join->on('jadwal_umums.id', '=', 'izin_instrukturs.jadwal_umum_id')
+                        ->on('jadwal_harians.tanggal', '=', 'izin_instrukturs.tanggal_izin')
+                        ->where('izin_instrukturs.is_confirmed', 2);
+                })
+                ->leftJoin('instrukturs as instrukturs_penganti', 'izin_instrukturs.instruktur_penganti_id', '=', 'instrukturs_penganti.id')
+                ->where('member_id', $request->user()->id)
+                ->where('jadwal_harians.tanggal', '>=' ,Carbon::parse($request->start_date)->format('Y-m-d'))
+                ->where('jadwal_harians.tanggal', '<=' ,Carbon::parse($request->end_date)->format('Y-m-d'))
+                ->select('booking_kelas.*', 'jadwal_harians.tanggal','jenis_transaksis.nama as jenis_pembayaran', DB::raw("TIME_FORMAT(jadwal_umums.jam_mulai, '%H:%i') as jam_mulai"),'jadwal_umums.hari', 'kelas.nama as nama_kelas','kelas.harga as harga_kelas' ,'instrukturs.nama as nama_instruktur', DB::raw('IFNULL(status_jadwal_harians.jenis_status, "") as jenis_status'), DB::raw('IFNULL(instrukturs_penganti.nama, "") as instruktur_penganti'))
                 ->orderBy('booking_kelas.created_at', 'desc')
                 ->get();
         return response()->json([

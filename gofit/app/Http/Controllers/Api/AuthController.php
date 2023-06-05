@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Hash;
-
+use Illuminate\Support\Facades\DB;
 use App\Models\pegawai;
 use App\Models\instruktur;
 use App\Models\member;
@@ -100,7 +100,11 @@ class AuthController extends Controller
     public function getUserMobile(Request $request){
         $pegawai = pegawai::find($request->user()->id);
         $instruktur = instruktur::find($request->user()->id);
-        $member = member::find($request->user()->id);
+        $member = DB::table('members')
+            ->join('kelas', 'members.kelas_deposit_kelas_paket_id', '=', 'kelas.id')
+            ->select('members.*', 'kelas.nama as kelas_deposit_kelas_paket')
+            ->where('members.id', $request->user()->id)
+            ->first();
         $user = null;
         $role = null;
     

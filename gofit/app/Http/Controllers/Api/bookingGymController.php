@@ -168,6 +168,23 @@ class bookingGymController extends Controller
             ->where('booking_gyms.member_id', $request->user()->id)
             ->select('booking_gyms.*', DB::raw("TIME_FORMAT(sesi_gyms.jam_mulai, '%H:%i') as jam_mulai"),DB::raw("TIME_FORMAT(sesi_gyms.jam_selesai, '%H:%i') as jam_selesai"))
             ->orderBy('booking_gyms.created_at', 'desc')
+            ->take(10)
+            ->get();
+        return response()->json([
+            'success' => true,
+            'message' => 'List booking',
+            'data' => $booking
+        ], 200);
+    }
+    //booking Gym Member Filter
+    public function showFilter(Request $request){
+        $booking = DB::table('booking_gyms')
+            ->join('sesi_gyms', 'booking_gyms.sesi_gym_id', '=', 'sesi_gyms.id')
+            ->where('booking_gyms.member_id', $request->user()->id)
+            ->where('booking_gyms.tgl_booking', '>=' ,Carbon::parse($request->start_date)->format('Y-m-d'))
+            ->where('booking_gyms.tgl_booking', '<=' ,Carbon::parse($request->end_date)->format('Y-m-d'))
+            ->select('booking_gyms.*', DB::raw("TIME_FORMAT(sesi_gyms.jam_mulai, '%H:%i') as jam_mulai"),DB::raw("TIME_FORMAT(sesi_gyms.jam_selesai, '%H:%i') as jam_selesai"))
+            ->orderBy('booking_gyms.created_at', 'desc')
             ->get();
         return response()->json([
             'success' => true,
