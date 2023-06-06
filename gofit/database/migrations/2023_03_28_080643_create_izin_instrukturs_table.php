@@ -50,7 +50,7 @@ return new class extends Migration
         });
 
         //Ajukan Izin Instruktur
-        $start_date = Carbon::parse('2023-01-02')->startOfWeek(Carbon::SUNDAY)->addDay();
+        $start_date = Carbon::parse('2023-04-03')->startOfWeek(Carbon::SUNDAY)->addDay();
         $end_date = Carbon::now();
         $list_keterangan_izin = ['Ada jadwal mengajar di gym lain', 'Nikahan', 'Sakit', 'Capek', 'Lelah', 'Ada urusan keluarga', 'Ada urusan lain', 'Ada acara', 'Ada rapat', 'Ada tugas', 'Ada kegiatan', 'Ada acara keluarga', 'Ada acara lain', 'Ada tugas kuliah', 'Ada tugas kampus', 'Ada tugas lain', 'Ada tugas kantor'];
         for($date = $start_date; $date <= $end_date; $date->addDays(rand(3, 30))){
