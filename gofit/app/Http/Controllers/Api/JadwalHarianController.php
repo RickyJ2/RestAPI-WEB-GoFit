@@ -233,7 +233,7 @@ class JadwalHarianController extends Controller
             ], 400);
         }
         // save jam Mulai
-        $jadwalHarian->jam_mulai = Carbon::now();
+        $jadwalHarian->jam_mulai = Carbon::now()->format('h:i:s');
         $jadwalHarian->save();
 
         //update jam terlambat instruktur
@@ -280,7 +280,7 @@ class JadwalHarianController extends Controller
             ], 400);
         }
         // save jam Mulai
-        $jadwalHarian->jam_selesai = Carbon::now();
+        $jadwalHarian->jam_selesai = Carbon::now()->format('h:i:s');
         $jadwalHarian->save();
 
         return response()->json([

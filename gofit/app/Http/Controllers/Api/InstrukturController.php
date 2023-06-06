@@ -83,7 +83,7 @@ class InstrukturController extends Controller
             'alamat' => 'required|string',
             'tgl_lahir' => 'required|date|date_format:Y-m-d',
             'no_telp' => 'required|string',
-            'username' => 'required|unique:instrukturs,username|unique:members,username|unique:pegawais,username',
+            'username' => 'required|unique:instrukturs,username|unique:members,id|unique:pegawais,username',
             'password' => 'required|string',
         ]);
 
@@ -162,7 +162,7 @@ class InstrukturController extends Controller
             'alamat' => 'required|string',
             'tgl_lahir' => 'required|date|date_format:Y-m-d',
             'no_telp' => 'required|string',
-            'username' => 'required|unique:instrukturs,username,'.$instruktur->id.'|unique:members,username|unique:pegawais,username',
+            'username' => 'required|unique:instrukturs,username,'.$instruktur->id.'|unique:members,id|unique:pegawais,username',
         ]);
 
         if($validator->fails()){

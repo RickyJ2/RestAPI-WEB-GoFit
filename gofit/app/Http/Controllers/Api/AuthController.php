@@ -66,8 +66,8 @@ class AuthController extends Controller
             ], 400);
         }
     
-        if(!is_null(member::where('username', $loginData['username'])->where('deleted_at', null)->first())){
-            $user = member::where('username', $loginData['username'])->first();
+        if(!is_null(member::where('id', $loginData['username'])->where('deleted_at', null)->first())){
+            $user = member::where('id', $loginData['username'])->first();
         } else if(!is_null(instruktur::where('username', $loginData['username'])->where('deleted_at', null)->first())){
             $user = instruktur::where('username', $loginData['username'])->first();
         } else if(!is_null(pegawai::where('username', $loginData['username'])->where('jabatan_id', 1)->first())){

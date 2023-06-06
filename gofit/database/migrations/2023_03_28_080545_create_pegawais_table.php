@@ -52,7 +52,7 @@ return new class extends Migration
                 'no_telp' => '0812847312',
                 'username' => 'ManajerOperasional',
                 'password' => bcrypt('G0F1T'),
-                'created_at' => '2022-01-01 00:00:00',
+                'created_at' => '2023-01-01 00:00:00',
             ],[
                 'jabatan_id' => 2,
                 'nama' => 'Andi',
@@ -61,7 +61,7 @@ return new class extends Migration
                 'no_telp' => '08129131211',
                 'username' => 'Admin01',
                 'password' => bcrypt('4dminG0F1T'),
-                'created_at' => '2022-01-01 00:00:00',
+                'created_at' => '2023-01-01 00:00:00',
             ],[
                 'jabatan_id' => 2,
                 'nama' => 'Budi',
@@ -70,7 +70,7 @@ return new class extends Migration
                 'no_telp' => '08119281123',
                 'username' => 'Admin02',
                 'password' => bcrypt('4dminG0F1T'),
-                'created_at' => '2022-01-01 00:00:00',
+                'created_at' => '2023-01-01 00:00:00',
             ],[
                 'jabatan_id' => 3,
                 'nama' => 'Maya',
@@ -79,7 +79,7 @@ return new class extends Migration
                 'no_telp' => '08132991123',
                 'username' => 'Kasir01',
                 'password' => bcrypt('K4sirG0F1T'),
-                'created_at' => '2022-01-01 00:00:00',
+                'created_at' => '2023-01-01 00:00:00',
             ],[
                 'jabatan_id' => 3,
                 'nama' => 'Yunita',
@@ -88,7 +88,7 @@ return new class extends Migration
                 'no_telp' => '0813412901923',
                 'username' => 'Kasir02',
                 'password' => bcrypt('K4sirG0F1T'),
-                'created_at' => '2022-01-01 00:00:00',
+                'created_at' => '2023-01-01 00:00:00',
             ],[
                 'jabatan_id' => 4,
                 'nama' => 'Kowi',
@@ -97,7 +97,7 @@ return new class extends Migration
                 'no_telp' => '0891218911',
                 'username' => null,
                 'password' => null,
-                'created_at' => '2022-01-01 00:00:00',
+                'created_at' => '2023-01-01 00:00:00',
             ], 
         ]);
     }

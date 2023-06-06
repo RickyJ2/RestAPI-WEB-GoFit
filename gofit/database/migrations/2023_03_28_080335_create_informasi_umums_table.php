@@ -22,9 +22,6 @@ return new class extends Migration
             $table->integer('min_deposit_reguler');
             $table->integer('max_deposit_kelas_awal');
         });
-        // Artisan::call('db:seed', [
-        //     '--class' => \Database\Seeders\informasi_umum::class,
-        // ]);
         DB::table('informasi_umums')->insert([
             'nama' => 'GoFit',
             'alamat' => 'Jl. Centralpark No. 10 Yogyakarta',

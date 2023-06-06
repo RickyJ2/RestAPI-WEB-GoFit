@@ -19,7 +19,6 @@ class member extends Authenticatable
         'tgl_lahir',
         'no_telp',
         'email',
-        'username',
         'password',
         'deactived_membership_at',
         'deposit_reguler',

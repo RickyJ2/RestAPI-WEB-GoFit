@@ -48,7 +48,6 @@ return new class extends Migration
             $table->date('tgl_lahir');
             $table->string('no_telp');
             $table->string('email');
-            $table->string('username')->unique();
             $table->string('password');
             $table->rememberToken();
             $table->date('deactived_membership_at')->nullable()->default(null);
@@ -59,8 +58,6 @@ return new class extends Migration
             $table->timestamp('created_at')->default(DB::raw('CURRENT_TIMESTAMP'));
             $table->timestamp('updated_at')->default(DB::raw('CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP'));
             $table->timestamp('deleted_at')->nullable()->default(null);
-
-            $table->index(['username', 'password']);
         });
 
         DB::statement($triggerSQL);
@@ -80,36 +77,29 @@ return new class extends Migration
                  'tgl_lahir' => '2002-06-02',
                  'no_telp' => '08117601123',
                  'email' => '200710589@students.uajy.ac.id',
-                 'username' => $namaMember[0],
                  'password' => bcrypt(Carbon::parse('2002-06-02')->format('dmy')),
-                 'created_at' => '2022-01-01 00:00:00',
+                 'created_at' => '2023-01-02 00:00:00',
              ],
          ]);
          
-         $start_date2 = '2022-01-01';
-         $end_date2 = '2022-01-07';
-         $start_date2 = new Carbon($start_date2);
-         $end_date2 = new Carbon($end_date2);
          //generate akun member dan aktivasi
          for($id = 1; $id < count($namaMember); $id++){
-             $bornDateRand = Carbon::createFromTimestamp(rand($start_dateBorn->timestamp, $end_dateBorn->timestamp));
-             $joinDateRand = Carbon::createFromTimestamp(rand($start_date2->timestamp, $end_date2->timestamp))->setTime(rand(8, 20), rand(0, 59), rand(0, 59));
-             $phone_numberRand = '08';
-             for ($i = 0; $i < 8; $i++) {
-                 $phone_numberRand .= rand(0, 9);
-             }
-             DB::table('members')->insert([
-                 [
-                     'nama' => $namaMember[$id],
-                     'alamat' => 'Jl. ' . $jalanMember[rand(0, count($jalanMember) - 1)] . ' No. ' . rand(1,30)  . ' Yogyakarta',
-                     'tgl_lahir' => $bornDateRand,
-                     'no_telp' => $phone_numberRand,
-                     'email' => $namaMember[$id] . '@gmail.com',
-                     'username' => $namaMember[$id],
-                     'password' => bcrypt($bornDateRand->format('dmy')),
-                     'created_at' => $joinDateRand,
-                 ],
-             ]);
+            $bornDateRand = Carbon::createFromTimestamp(rand($start_dateBorn->timestamp, $end_dateBorn->timestamp));
+            $phone_numberRand = '08';
+            for ($i = 0; $i < 8; $i++) {
+                $phone_numberRand .= rand(0, 9);
+            }
+            DB::table('members')->insert([
+                [
+                    'nama' => $namaMember[$id],
+                    'alamat' => 'Jl. ' . $jalanMember[rand(0, count($jalanMember) - 1)] . ' No. ' . rand(1,30)  . ' Yogyakarta',
+                    'tgl_lahir' => $bornDateRand,
+                    'no_telp' => $phone_numberRand,
+                    'email' => $namaMember[$id] . '@gmail.com',
+                    'password' => bcrypt($bornDateRand->format('dmy')),
+                    'created_at' => '2023-01-02 00:00:00',
+                ],
+            ]);
          }
     }
 
