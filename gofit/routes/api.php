@@ -46,12 +46,12 @@ Route::group(['middleware' => 'auth:sanctum'], function(){
     Route::get('member/showProfile', 'App\Http\Controllers\Api\MemberController@showProfile');
     
     //promo (hak akses kasir)
-    Route::get('promo/index', 'App\Http\Controllers\Api\PromoController@index');
+    Route::get('promo/index', 'App\Http\Controllers\Api\promoController@index');
 
     //transaksi (hak akses kasir)
-    Route::post('transaksi/aktivasi', 'App\Http\Controllers\Api\TransaksiController@activationTransaksi');
-    Route::post('transaksi/depositReguler', 'App\Http\Controllers\Api\TransaksiController@depositRegulerTransaksi');
-    Route::post('transaksi/depositKelasPaket', 'App\Http\Controllers\Api\TransaksiController@depositKelasPaketTransaksi');
+    Route::post('transaksi/aktivasi', 'App\Http\Controllers\Api\transaksiController@activationTransaksi');
+    Route::post('transaksi/depositReguler', 'App\Http\Controllers\Api\transaksiController@depositRegulerTransaksi');
+    Route::post('transaksi/depositKelasPaket', 'App\Http\Controllers\Api\transaksiController@depositKelasPaketTransaksi');
 
     //instruktur (hak akses admin)
     Route::get('instruktur/index', 'App\Http\Controllers\Api\InstrukturController@index');
@@ -100,39 +100,39 @@ Route::group(['middleware' => 'auth:sanctum'], function(){
     Route::get('jadwalHarian/showFilter/{year}/{month}', 'App\Http\Controllers\Api\JadwalHarianController@showFiltered');
 
     //Izin Instruktur (MO)
-    Route::get('izinInstruktur/index', 'App\Http\Controllers\Api\IzinInstrukturController@index');
-    Route::put('izinInstruktur/verifikasi/{id}', 'App\Http\Controllers\Api\IzinInstrukturController@updateVerifIzin');
+    Route::get('izinInstruktur/index', 'App\Http\Controllers\Api\izinInstrukturController@index');
+    Route::put('izinInstruktur/verifikasi/{id}', 'App\Http\Controllers\Api\izinInstrukturController@updateVerifIzin');
     //Izin Instruktur (Instruktur)
-    Route::post('izinInstruktur/add', 'App\Http\Controllers\Api\IzinInstrukturController@add');
-    Route::get('izinInstruktur/show', 'App\Http\Controllers\Api\IzinInstrukturController@show');
+    Route::post('izinInstruktur/add', 'App\Http\Controllers\Api\izinInstrukturController@add');
+    Route::get('izinInstruktur/show', 'App\Http\Controllers\Api\izinInstrukturController@show');
     
     //Booking Kelas (Kasir)
-    Route::get('bookingKelas/index', 'App\Http\Controllers\Api\BookingKelasController@index');
+    Route::get('bookingKelas/index', 'App\Http\Controllers\Api\bookingKelasController@index');
     //List member booking kelas (Instruktur)
-    Route::get('bookingKelas/getListMember/{id}', 'App\Http\Controllers\Api\BookingKelasController@getListMember');
+    Route::get('bookingKelas/getListMember/{id}', 'App\Http\Controllers\Api\bookingKelasController@getListMember');
     //Booking Kelas (Member)
-    Route::get('bookingKelas/show', 'App\Http\Controllers\Api\BookingKelasController@show');
-    Route::post('bookingKelas/showFilter', 'App\Http\Controllers\Api\BookingKelasController@showFilter');
-    Route::post('bookingKelas/add', 'App\Http\Controllers\Api\BookingKelasController@add');
-    Route::post('bookingKelas/cancel', 'App\Http\Controllers\Api\BookingKelasController@cancel');
+    Route::get('bookingKelas/show', 'App\Http\Controllers\Api\bookingKelasController@show');
+    Route::post('bookingKelas/showFilter', 'App\Http\Controllers\Api\bookingKelasController@showFilter');
+    Route::post('bookingKelas/add', 'App\Http\Controllers\Api\bookingKelasController@add');
+    Route::post('bookingKelas/cancel', 'App\Http\Controllers\Api\bookingKelasController@cancel');
     //Presensi Booking Kelas (Instruktur)
-    Route::post('bookingKelas/updatePresent', 'App\Http\Controllers\Api\TransaksiController@updatePresentKelas');
+    Route::post('bookingKelas/updatePresent', 'App\Http\Controllers\Api\transaksiController@updatePresentKelas');
 
     //sesi Gym
-    Route::get('sesiGym/index', 'App\Http\Controllers\Api\SesiGymController@index');
+    Route::get('sesiGym/index', 'App\Http\Controllers\Api\sesiGymController@index');
 
     //Booking Gym (Kasir)
-    Route::get('bookingGym/index', 'App\Http\Controllers\Api\BookingGymController@index');
-    Route::post('bookingGym/updatePresent', 'App\Http\Controllers\Api\TransaksiController@updatePresent');
+    Route::get('bookingGym/index', 'App\Http\Controllers\Api\bookingGymController@index');
+    Route::post('bookingGym/updatePresent', 'App\Http\Controllers\Api\transaksiController@updatePresent');
     //Booking Gym (Member)
-    Route::get('bookingGym/show', 'App\Http\Controllers\Api\BookingGymController@show');
-    Route::post('bookingGym/showFilter', 'App\Http\Controllers\Api\BookingGymController@showFilter');
-    Route::post('bookingGym/add', 'App\Http\Controllers\Api\BookingGymController@add');
-    Route::post('bookingGym/cancel', 'App\Http\Controllers\Api\BookingGymController@cancel');
+    Route::get('bookingGym/show', 'App\Http\Controllers\Api\bookingGymController@show');
+    Route::post('bookingGym/showFilter', 'App\Http\Controllers\Api\bookingGymController@showFilter');
+    Route::post('bookingGym/add', 'App\Http\Controllers\Api\bookingGymController@add');
+    Route::post('bookingGym/cancel', 'App\Http\Controllers\Api\bookingGymController@cancel');
 
     //Laporan
-    Route::get('laporanPendapatan/{year}', 'App\Http\Controllers\Api\LaporanController@laporanPendapatan');
-    Route::get('laporanKelas/{year}/{month}', 'App\Http\Controllers\Api\LaporanController@laporanKelas');
-    Route::get('laporanGym/{year}/{month}', 'App\Http\Controllers\Api\LaporanController@laporanGym');
-    Route::get('laporanKinerjaInstruktur/{year}/{month}', 'App\Http\Controllers\Api\LaporanController@laporanKinerjaInstruktur');
+    Route::get('laporanPendapatan/{year}', 'App\Http\Controllers\Api\laporanController@laporanPendapatan');
+    Route::get('laporanKelas/{year}/{month}', 'App\Http\Controllers\Api\laporanController@laporanKelas');
+    Route::get('laporanGym/{year}/{month}', 'App\Http\Controllers\Api\laporanController@laporanGym');
+    Route::get('laporanKinerjaInstruktur/{year}/{month}', 'App\Http\Controllers\Api\laporanController@laporanKinerjaInstruktur');
 });
