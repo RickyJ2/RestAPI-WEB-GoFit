@@ -247,10 +247,11 @@ class JadwalHarianController extends Controller
                 ->first();
             $instruktur = Instruktur::find($izinInstruktur->instruktur_penganti_id);
         }
-
-        if(Carbon::parse($jadwalHarian->jam_mulai)->gt(Carbon::parse($jadwalUmum->jam_mulai))){
-            $jadwalHarian->akumulasi_terlambat = Carbon::parse($jadwalHarian->jam_mulai)->diffInMinutes(Carbon::parse($jadwalUmum->jam_mulai));
-            $instruktur->akumulasi_terlambat += Carbon::parse($jadwalHarian->jam_mulai)->diffInMinutes(Carbon::parse($jadwalUmum->jam_mulai));
+        $jamMulaiJadwalHarian = Carbon::parse($jadwalHarian->jam_mulai)->format('h:i:s');
+        $jamMulaiJadwalUmum = Carbon::parse($jadwalUmum->jam_mulai)->format('h:i:s');
+        if(Carbon::parse($jamMulaiJadwalHarian)->gt(Carbon::parse($jamMulaiJadwalUmum))){
+            $jadwalHarian->akumulasi_terlambat = Carbon::parse($jamMulaiJadwalHarian)->diffInMinutes(Carbon::parse($jamMulaiJadwalUmum));
+            $instruktur->akumulasi_terlambat += Carbon::parse($jamMulaiJadwalHarian)->diffInMinutes(Carbon::parse($jamMulaiJadwalUmum));
             $jadwalHarian->save();
             $instruktur->save();
         }

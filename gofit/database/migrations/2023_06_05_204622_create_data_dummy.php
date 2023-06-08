@@ -214,7 +214,7 @@ return new class extends Migration
                             //update akumulasi terlambat instruktur
                             if($jamMulaiJadwalHarian -> gt($jamMulaiJadwalUmum)){
                                 $jadwalHarian->akumulasi_terlambat = Carbon::parse($jadwalHarian->jam_mulai)->diffInMinutes(Carbon::parse($jadwalUmum[$index]->jam_mulai));
-                                $instruktur->akumulasi_terlambat += Carbon::parse($jadwalHarian->jam_mulai)->diffInMinutes(Carbon::parse($jadwalUmum[$index]->jam_mulai));
+                                $instruktur->akumulasi_terlambat += $jadwalHarian->akumulasi_terlambat;
                                 $instruktur->save();
                             }
                             //update jam selesai
