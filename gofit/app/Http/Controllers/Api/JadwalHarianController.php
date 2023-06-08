@@ -254,6 +254,9 @@ class JadwalHarianController extends Controller
             $instruktur->akumulasi_terlambat += Carbon::parse($jamMulaiJadwalHarian)->diffInMinutes(Carbon::parse($jamMulaiJadwalUmum));
             $jadwalHarian->save();
             $instruktur->save();
+        }else{
+            $jadwalHarian->akumulasi_terlambat = 1;
+            $jadwalHarian->save();
         }
        
         return response()->json([
