@@ -61,71 +61,47 @@ return new class extends Migration
      */
     public function up(): void
     {
+        $members = Member::all();
+        foreach($members as $member){
+            //aktivasi akun default
+            $activedDate = Carbon::parse($member->created_at)->setTime(rand(8, 20), rand(0, 59), rand(0, 59));
+            DB::table('transaksis')->insert([
+                'pegawai_id' => 'P0' . rand(4,5),
+                'member_id' => $member->id,
+                'jenis_transaksi_id' => 1,
+                'created_at' => $activedDate,
+            ]);
+            $member->deactived_membership_at = $activedDate->addYear();
+            $member->save();
+            //Deposit Reguler
+            $transaksi = self::createTransaksi($member->id, 2, Carbon::parse('2023-01-02')->setTime(rand(8, 20), rand(0, 59), rand(0, 59)));
+            $detailTransaksi = new detailTransaksiDepositReguler;
+            $detailTransaksi->no_nota = $transaksi->id;       
+            $detailTransaksi->nominal = 500000;
+            $member->deposit_reguler += $detailTransaksi->nominal;
+            $detailTransaksi->save();
+            $member->save();
+            //Deposit kelas Paket
+            $transaksi = self::createTransaksi($member->id, 3, Carbon::parse('2023-01-02')->setTime(rand(8, 20), rand(0, 59), rand(0, 59)));
+            $detailTransaksi = new detailTransaksiDepositKelasPaket;
+            $detailTransaksi->no_nota = $transaksi->id;
+            $detailTransaksi->kelas_id = rand(1,19);
+            $detailTransaksi->nominal = 6;
+            $kelas = DB::table('kelas')
+                ->where('id', $detailTransaksi->kelas_id)
+                ->first();
+            $detailTransaksi->total = $detailTransaksi->nominal * $kelas->harga;
+            $member->deposit_kelas_paket += $detailTransaksi->nominal;
+            $member->kelas_deposit_kelas_paket_id = $detailTransaksi->kelas_id;
+            $member->deactived_deposit_kelas_paket = Carbon::parse($transaksi->created_at)->addMonth();
+            $detailTransaksi->promo_id = 3;
+            $detailTransaksi->save();
+            $member->save();
+        }
         $namaMember = ['10589_Ricky Junaidi','Matthew Wilson', 'Noah Young', 'Ava Anderson', 'Daniel Moore', 'Sophia Taylor', 'James Robinson', 'Benjamin Miller', 'Charlotte White', 'Alexander Johnson', 'Michael Clark', 'Olivia Scott', 'Noah Taylor', 'Benjamin Harris', 'John Harris', 'Sophia Wilson', 'Alexander Davis', 'John Miller', 'Emily Martin', 'Matthew Lee', 'Olivia Davis', 'Daniel Wright', 'Emma Young', 'Isabella Robinson', 'Emily Taylor', 'Victoria Davis', 'James Davis', 'James Martin', 'Amelia Smith', 'Ethan Miller', 'Amelia Walker', 'Ethan Davis', 'Jane Wilson', 'Olivia White', 'Isabella Scott', 'Daniel Lewis', 'Noah Smith', 'Emily Lewis', 'Daniel Wilson', 'James Clark', 'Jane Moore', 'Isabella Harris', 'Michael Wilson', 'Sophia Smith', 'Benjamin Martin', 'Alexander Anderson', 'Amelia Davis', 'Victoria Walker', 'John Clark', 'Emma Walker', 'Matthew Lewis', 'Emily Smith', 'Arianna Mcknight','Tommy-Lee Carroll','Zakaria Slater','Ophelia Fisher','Esme Mack','Cleo Buckley','Kyra Barnett','Brianna Sanchez','Honey Lucas','Hugo Ortiz','Mahir Pena','Karina Sheppard','Simeon Archer','Alma Oneal','Susie Connolly','Uzair Shepherd','Ria Thornton','Roisin Sullivan','Isaiah Wang','Darcie Stevenson', ];
         $start_date = Carbon::parse('2023-04-03')->startOfWeek(Carbon::SUNDAY)->addDay();
-        $end_date = Carbon::now();
+        $end_date = Carbon::now()->startOfWeek(Carbon::SUNDAY)->subDay();
         for($date = $start_date; $date->lte($end_date); $date->addDay()) {
-            //aktivasi dan tambah deposit akun member baru dibuat
-            $member = Member::where('created_at', $date)
-                ->get();
-            foreach($member as $m){
-                //aktivasi
-                $activedDate = $date->copy()->setTime(rand(8, 20), rand(0, 59), rand(0, 59));
-                DB::table('transaksis')->insert([
-                    'pegawai_id' => 'P0' . rand(4,5),
-                    'member_id' => $m->id,
-                    'jenis_transaksi_id' => 1,
-                    'created_at' => $activedDate,
-                ]);
-                DB::table('members')
-                    ->where('id', $m->id)
-                    ->update(['deactived_membership_at' => $activedDate->copy()->addYear()]);
-                //Deposit Reguler
-                $transaksi = self::createTransaksi($m->id, 2, $activedDate);
-                $detailTransaksi = new detailTransaksiDepositReguler;
-                $detailTransaksi->no_nota = $transaksi->id;       
-                $detailTransaksi->nominal = self::generateDepositReguler();
-        
-                $m->deposit_reguler += $detailTransaksi->nominal;
-                if($detailTransaksi->nominal >= 3000000){
-                    $m->deposit_reguler += 300000;
-                    $detailTransaksi->promo_id = 1;
-                }
-                $detailTransaksi->save();
-                $m->save();
-                //Deposit kelas Paket
-                $transaksi = self::createTransaksi($m->id, 3, $activedDate);
-                $detailTransaksi = new detailTransaksiDepositKelasPaket;
-                $detailTransaksi->no_nota = $transaksi->id;
-                $detailTransaksi->kelas_id = rand(1,19);
-                $detailTransaksi->nominal = rand(1,2);
-                if($detailTransaksi->nominal == 1){
-                    $detailTransaksi->nominal = 5;
-                 } else {
-                    $detailTransaksi->nominal = 10;
-                }
-                $kelas = DB::table('kelas')
-                    ->where('id', $detailTransaksi->kelas_id)
-                    ->first();
-                $detailTransaksi->total = $detailTransaksi->nominal * $kelas->harga;
-                
-                $m->deposit_kelas_paket += $detailTransaksi->nominal;
-                $m->kelas_deposit_kelas_paket_id = $detailTransaksi->kelas_id;
-                if($detailTransaksi->nominal < 10){
-                    $m->deactived_deposit_kelas_paket = Carbon::parse($transaksi->created_at)->addMonth();
-                }else{
-                    $m->deactived_deposit_kelas_paket = Carbon::parse($transaksi->created_at)->addMonths(2);
-                }
-                if($detailTransaksi->nominal >= 10){
-                    $m->deposit_kelas_paket += 3;
-                    $detailTransaksi->promo_id = 2;
-                }else if($detailTransaksi->nominal >= 5){
-                    $m->deposit_kelas_paket += 1;
-                    $detailTransaksi->promo_id = 3;
-                }
-                $detailTransaksi->save();
-                $m->save();
-            }
             //deactive paket kelas yang kadarluasa && tambah transaksi deposit kelas paket
             $member = Member::where('deactived_deposit_kelas_paket', '<', $date)
                 ->get();

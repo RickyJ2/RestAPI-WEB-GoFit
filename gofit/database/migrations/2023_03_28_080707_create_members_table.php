@@ -5,9 +5,40 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 use Carbon\Carbon;
+use App\Models\transaksi;
+use App\Models\detail_transaksi_deposit_reguler as detailTransaksiDepositReguler;
+use App\Models\detail_transaksi_deposit_kelas_paket as detailTransaksiDepositKelasPaket;
+use App\Models\member as Member;
 
 return new class extends Migration
 {
+    public function createTransaksi(String $member_id, String $jenis_transaksi_id, String $created_at){
+        $pegawai_id = 'P0' . rand(4,5);
+        if($jenis_transaksi_id != 5){
+            DB::table('transaksis')->insert([
+                'pegawai_id' => $pegawai_id,
+                'member_id' => $member_id,
+                'jenis_transaksi_id' => $jenis_transaksi_id,
+                'created_at' => $created_at,
+            ]);
+            $transaksi = Transaksi::where('pegawai_id', $pegawai_id)
+                ->where('member_id', $member_id)
+                ->where('jenis_transaksi_id', $jenis_transaksi_id)
+                ->where('created_at', $created_at)
+                ->first();
+        }else{
+            DB::table('transaksis')->insert([
+                'member_id' => $member_id,
+                'jenis_transaksi_id' => $jenis_transaksi_id,
+                'created_at' => $created_at,
+            ]);
+            $transaksi = Transaksi::where('member_id', $member_id)
+                ->where('jenis_transaksi_id', $jenis_transaksi_id)
+                ->where('created_at', $created_at)
+                ->first();
+        }
+        return $transaksi;
+    }
     /**
      * Run the migrations.
      */
@@ -81,8 +112,8 @@ return new class extends Migration
                  'created_at' => '2023-01-02 00:00:00',
              ],
          ]);
-         
-         //generate akun member dan aktivasi
+
+         //generate akun member
          for($id = 1; $id < count($namaMember); $id++){
             $bornDateRand = Carbon::createFromTimestamp(rand($start_dateBorn->timestamp, $end_dateBorn->timestamp));
             $phone_numberRand = '08';
