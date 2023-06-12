@@ -177,46 +177,46 @@ class laporanController extends Controller
                 'data' => null
             ], 401);
         }
-
-        // $data = DB::table('jadwal_harians')
-        //     ->join('jadwal_umums', 'jadwal_harians.jadwal_umum_id', '=', 'jadwal_umums.id')
-        //     ->join('instrukturs', 'jadwal_umums.instruktur_id', '=', 'instrukturs.id')
-        //     ->leftJoin('izin_instrukturs', function ($join) {
-        //         $join->on('jadwal_umums.id', '=', 'izin_instrukturs.jadwal_umum_id')
-        //             ->on('jadwal_harians.tanggal', '=', 'izin_instrukturs.tanggal_izin')
-        //             ->where('izin_instrukturs.is_confirmed', 2);
-        //     })
-        //     ->select(
-        //         DB::raw('CASE WHEN jadwal_harians.status_id = 2 THEN instrukturs_penganti.nama ELSE instrukturs.nama END AS nama_instruktur'),
-        //         DB::raw('COUNT(CASE WHEN jadwal_harians.status_id = NULL THEN jadwal_harians.id END) AS jumlah_hadir'),
-        //         DB::raw('COUNT(CASE WHEN jadwal_harians.status_id = 1 THEN jadwal_harians.id END) AS jumlah_libur'),
-        //         DB::raw('SUM(jadwal_harians.akumulasi_terlambat) AS total_waktu_terlambat')
-        //     )
-        //     ->whereYear('jadwal_harians.tanggal', $year)
-        //     ->whereMonth('jadwal_harians.tanggal', $month)
-        //     ->groupBy('nama_instruktur')
-        //     ->orderBy('total_waktu_terlambat', 'ASC')
-        //     ->get();
-
-        $data = DB::table('instrukturs')
+        $data = DB::table('jadwal_harians')
+            ->join('jadwal_umums', 'jadwal_harians.jadwal_umum_id', '=', 'jadwal_umums.id')
+            ->join('instrukturs', 'jadwal_umums.instruktur_id', '=', 'instrukturs.id')
+            ->leftJoin('izin_instrukturs', function ($join) {
+                $join->on('jadwal_umums.id', '=', 'izin_instrukturs.jadwal_umum_id')
+                    ->on('jadwal_harians.tanggal', '=', 'izin_instrukturs.tanggal_izin')
+                    ->where('izin_instrukturs.is_confirmed', 2);
+            })
+            ->leftJoin('instrukturs as instrukturs_penganti', 'izin_instrukturs.instruktur_penganti_id', '=', 'instrukturs_penganti.id')
             ->select(
                 DB::raw('CASE WHEN jadwal_harians.status_id = 2 THEN instrukturs_penganti.nama ELSE instrukturs.nama END AS nama_instruktur'),
-                DB::raw('COUNT(jadwal_harians.id) AS jumlah_hadir'),
+                DB::raw('COUNT(CASE WHEN jadwal_harians.status_id = NULL THEN jadwal_harians.id END) AS jumlah_hadir'),
                 DB::raw('COUNT(CASE WHEN jadwal_harians.status_id = 1 THEN jadwal_harians.id END) AS jumlah_libur'),
                 DB::raw('SUM(jadwal_harians.akumulasi_terlambat) AS total_waktu_terlambat')
             )
-            ->leftJoin('jadwal_umums', 'instrukturs.id', '=', 'jadwal_umums.instruktur_id')
-            ->leftJoin('jadwal_harians', 'jadwal_harians.jadwal_umum_id', '=', 'jadwal_umums.id')
-            ->leftJoin('izin_instrukturs', 'izin_instrukturs.jadwal_umum_id', '=', 'jadwal_umums.id')
-            ->leftJoin('instrukturs AS instrukturs_penganti', function ($join) {
-                $join->on('instrukturs_penganti.id', '=', 'izin_instrukturs.instruktur_penganti_id')
-                    ->where('jadwal_harians.status_id', '=', 2);
-            })
             ->whereYear('jadwal_harians.tanggal', $year)
             ->whereMonth('jadwal_harians.tanggal', $month)
             ->groupBy('nama_instruktur')
             ->orderBy('total_waktu_terlambat', 'ASC')
             ->get();
+
+        // $data = DB::table('instrukturs')
+        //     ->select(
+        //         DB::raw('CASE WHEN jadwal_harians.status_id = 2 THEN instrukturs_penganti.nama ELSE instrukturs.nama END AS nama_instruktur'),
+        //         DB::raw('COUNT(jadwal_harians.id) AS jumlah_hadir'),
+        //         DB::raw('COUNT(CASE WHEN jadwal_harians.status_id = 1 THEN jadwal_harians.id END) AS jumlah_libur'),
+        //         DB::raw('SUM(jadwal_harians.akumulasi_terlambat) AS total_waktu_terlambat')
+        //     )
+        //     ->leftJoin('jadwal_umums', 'instrukturs.id', '=', 'jadwal_umums.instruktur_id')
+        //     ->leftJoin('jadwal_harians', 'jadwal_harians.jadwal_umum_id', '=', 'jadwal_umums.id')
+        //     ->leftJoin('izin_instrukturs', 'izin_instrukturs.jadwal_umum_id', '=', 'jadwal_umums.id')
+        //     ->leftJoin('instrukturs AS instrukturs_penganti', function ($join) {
+        //         $join->on('instrukturs_penganti.id', '=', 'izin_instrukturs.instruktur_penganti_id')
+        //             ->where('jadwal_harians.status_id', '=', 2);
+        //     })
+        //     ->whereYear('jadwal_harians.tanggal', $year)
+        //     ->whereMonth('jadwal_harians.tanggal', $month)
+        //     ->groupBy('nama_instruktur')
+        //     ->orderBy('total_waktu_terlambat', 'ASC')
+        //     ->get();
         
         return response()->json([
             'success' => true,
