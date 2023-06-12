@@ -254,9 +254,11 @@ return new class extends Migration
                 $idMember = array_slice($idMember, $randBook);
             }
             //Booking Kelas
-            $jadwalHarian = jadwalHarian::where('tanggal', $date)
-                ->where('status_id', '=', 2)
-                ->orWhereNull('status_id')
+            $jadwalHarian = jadwalHarian::where('tanggal', $date->format('Y-m-d'))
+                ->where(function ($query){
+                    $query->where('status_id', '=', 2)
+                        ->orWhereNull('status_id');
+                })
                 ->get();
             $idMember = range(0, count($namaMember) - 1);
             shuffle($idMember);
@@ -302,7 +304,7 @@ return new class extends Migration
                     $bookingKelas->save();
                 }
                 $idMember = array_slice($idMember, $randBook);
-                
+
             }
         }
     }
