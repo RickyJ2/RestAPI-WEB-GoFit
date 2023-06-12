@@ -188,7 +188,7 @@ class laporanController extends Controller
             ->leftJoin('instrukturs as instrukturs_penganti', 'izin_instrukturs.instruktur_penganti_id', '=', 'instrukturs_penganti.id')
             ->select(
                 DB::raw('CASE WHEN jadwal_harians.status_id = 2 THEN instrukturs_penganti.nama ELSE instrukturs.nama END AS nama_instruktur'),
-                DB::raw('COUNT(CASE WHEN jadwal_harians.status_id = NULL THEN jadwal_harians.id END) AS jumlah_hadir'),
+                DB::raw('COUNT(CASE WHEN jadwal_harians.status_id is NULL THEN jadwal_harians.id END) AS jumlah_hadir'),
                 DB::raw('COUNT(CASE WHEN jadwal_harians.status_id = 1 THEN jadwal_harians.id END) AS jumlah_libur'),
                 DB::raw('SUM(jadwal_harians.akumulasi_terlambat) AS total_waktu_terlambat')
             )
