@@ -196,7 +196,7 @@ return new class extends Migration
                         $randProbLibur = rand(1,10);
                         if($randProbLibur > 8){
                             $jadwalHarian->status_id = 1;
-                        }else {
+                        }else if($date != $end_date){
                             $instruktur = Instruktur::find($jadwalUmum[$index]->instruktur_id);
                             if(!is_null($izinInstruktur)){
                                 $jadwalHarian->status_id = 2;
@@ -218,6 +218,7 @@ return new class extends Migration
                                 $instruktur->akumulasi_terlambat += $jadwalHarian->akumulasi_terlambat;
                                 $instruktur->save();
                             }
+
                             //update jam selesai
                             $endTime = $jadwalHarian->jam_mulai->copy();
                             $jadwalHarian->jam_selesai = $endTime->copy()->addHour();
@@ -241,7 +242,7 @@ return new class extends Migration
                     $bookingGym->created_at = Carbon::parse($date->copy())->subDays(rand(1,3))->setTime(rand(8, 20), rand(0, 59), rand(0, 59));
                      //random 80% hadir 20% tidak hadir
                     $randConfirmed = rand(1, 10);
-                    if($randConfirmed < 9) {
+                    if($randConfirmed < 9 && $date != $end_date){
                         $sesiGymData = sesiGym::find($sesiGym);
                         list($hour, $minute) = explode(":", $sesiGymData->jam_mulai);
                         $bookingGym->present_at = Carbon::parse($date->copy())->setTime($hour, $minute, rand(0, 59))->subMinutes(rand(0, 30));
@@ -274,7 +275,8 @@ return new class extends Migration
                     $bookingKelas->created_at = Carbon::parse($date->copy())->subDays(rand(1,3))->setTime(rand(8, 20), rand(0, 59), rand(0, 59));
                     //random 80% hadir 20% tidak hadir
                     $randConfirmed = rand(1, 10);
-                    if($randConfirmed < 9) {
+                    if($date == $end_date) continue;
+                    if($randConfirmed < 9){
                         $bookingKelas->present_at = $presentAt->copy();   
                     }
                     //potong deposit
