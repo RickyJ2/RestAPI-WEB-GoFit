@@ -190,7 +190,7 @@ class laporanController extends Controller
                 DB::raw('CASE WHEN jadwal_harians.status_id = 2 THEN instrukturs_penganti.nama ELSE instrukturs.nama END AS nama_instruktur'),
                 DB::raw('COUNT(CASE WHEN jadwal_harians.status_id is NULL THEN jadwal_harians.id END) AS jumlah_hadir'),
                 DB::raw('COUNT(CASE WHEN jadwal_harians.status_id = 1 THEN jadwal_harians.id END) AS jumlah_libur'),
-                DB::raw('SUM(jadwal_harians.akumulasi_terlambat) AS total_waktu_terlambat')
+                DB::raw('SUM(jadwal_harians.akumulasi_terlambat)*60 AS total_waktu_terlambat')
             )
             ->whereYear('jadwal_harians.tanggal', $year)
             ->whereMonth('jadwal_harians.tanggal', $month)
