@@ -302,6 +302,7 @@ return new class extends Migration
                     $bookingKelas->save();
                 }
                 $idMember = array_slice($idMember, $randBook);
+                
             }
         }
     }
