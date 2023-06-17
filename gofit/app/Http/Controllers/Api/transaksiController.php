@@ -189,7 +189,6 @@ class transaksiController extends Controller
             'jenis_transaksi_id' => 'required',
             'kelas_id' => 'required|integer',
             'nominal' => 'required|integer',
-            'total' => 'required|integer',
         ]);
         if($validator->fails()){
             return response()->json([
@@ -213,11 +212,12 @@ class transaksiController extends Controller
                 'data' => null
             ], 400);
         }
+        $kelas = Kelas::find($request->kelas_id);
         $detailTransaksi = new detailTransaksiDepositKelasPaket;
         $detailTransaksi->no_nota = $transaksi->id;
         $detailTransaksi->kelas_id = $request->kelas_id;
         $detailTransaksi->nominal = $request->nominal;
-        $detailTransaksi->total = $request->total;
+        $detailTransaksi->total = $request->nominal * $kelas->harga;
 
         //update data member
         $member = member::find($request->member_id);
