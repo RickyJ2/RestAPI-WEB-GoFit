@@ -91,7 +91,7 @@ class AuthController extends Controller
         }else{
             return response()->json([
                 'success' => false,
-                'message' => 'Login Gagal',
+                'message' => 'Username dan password salah',
                 'data' => null
             ], 401);
         }
