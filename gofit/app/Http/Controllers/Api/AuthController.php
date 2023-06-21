@@ -130,7 +130,8 @@ class AuthController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Gagal mendapatkan data user',
-                'data' => null
+                'data' => $user,
+                'id' => $request->user()->id,
             ], 401);
         }
     }
