@@ -101,7 +101,7 @@ class AuthController extends Controller
         $pegawai = pegawai::find($request->user()->id);
         $instruktur = instruktur::find($request->user()->id);
         $member = DB::table('members')
-            ->join('kelas', 'members.kelas_deposit_kelas_paket_id', '=', 'kelas.id')
+            ->leftJoin('kelas', 'members.kelas_deposit_kelas_paket_id', '=', 'kelas.id')
             ->select('members.*', 'kelas.nama as kelas_deposit_kelas_paket')
             ->where('members.id', $request->user()->id)
             ->first();
@@ -130,8 +130,7 @@ class AuthController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Gagal mendapatkan data user',
-                'data' => $user,
-                'id' => $request->user()->id,
+                'data' => null,
             ], 401);
         }
     }
